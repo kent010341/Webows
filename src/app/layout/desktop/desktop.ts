@@ -23,8 +23,8 @@
  */
 
 import { AppIcon } from '@webows/components/app-icon/app-icon';
-import { Component, inject, Injector, signal } from '@angular/core';
-import { DESKTOP_APPS, WINDOW_COMPONENT_REGISTRY, WINDOW_INSTANCE_ID } from '@webows/core/apps/desktop-app.data';
+import { Component, inject, Injector } from '@angular/core';
+import { DESKTOP_APPS, WINDOW_INSTANCE_ID } from '@webows/core/apps/desktop-app.data';
 import { Taskbar } from '@webows/layout/desktop/taskbar/taskbar';
 import { WindowInstance, WindowManager } from '@webows/core/window/window-manager';
 import { DesktopAppId } from '@webows/core/apps/desktop-app.enum';
@@ -48,12 +48,12 @@ import { NgComponentOutlet } from '@angular/common';
 export class Desktop {
 
   readonly DesktopAppId = DesktopAppId;
-  readonly WINDOW_COMPONENT_REGISTRY = WINDOW_COMPONENT_REGISTRY;
+  readonly DESKTOP_APPS = DESKTOP_APPS;
 
   private readonly windowManager = inject(WindowManager);
   private readonly injector = inject(Injector);
 
-  readonly apps = signal(DESKTOP_APPS);
+  readonly apps = Object.values(DESKTOP_APPS);
   readonly windows = this.windowManager.windows;
 
 

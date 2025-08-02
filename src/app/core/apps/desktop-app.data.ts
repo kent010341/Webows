@@ -24,28 +24,17 @@
 
 import { DesktopAppId } from './desktop-app.enum';
 import { DesktopAppMeta } from './desktop-app.model';
+import { InjectionToken } from '@angular/core';
 import { Notepad } from '@webows/features/notepad/notepad';
 import { StickyNoteIcon } from 'lucide-angular';
-import { InjectionToken, Type } from '@angular/core';
 
-/**
- * List of all apps
- */
-export const DESKTOP_APPS: DesktopAppMeta[] = [
-  {
+export const DESKTOP_APPS: Record<DesktopAppId, DesktopAppMeta> = {
+  [DesktopAppId.Notepad]: {
     id: DesktopAppId.Notepad,
     icon: StickyNoteIcon,
     label: 'Notepad',
+    component: Notepad,
   },
-];
-
-/**
- * Registry mapping DesktopAppId to corresponding Angular standalone component.
- * Used by the window manager to dynamically resolve and render app components
- * via ngComponentOutlet.
- */
-export const WINDOW_COMPONENT_REGISTRY: Record<DesktopAppId, Type<unknown>> = {
-  [DesktopAppId.Notepad]: Notepad,
 };
 
 /**

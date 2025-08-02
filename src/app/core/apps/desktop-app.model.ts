@@ -24,6 +24,7 @@
 
 import type { LucideIconData } from 'lucide-angular';
 import { DesktopAppId } from './desktop-app.enum';
+import { Type } from '@angular/core';
 
 /**
  * Represents a launchable app in the desktop UI.
@@ -32,4 +33,7 @@ export interface DesktopAppMeta {
   id: DesktopAppId;
   icon: LucideIconData;
   label: string;
+
+  /** the component of the app window */
+  component: Type<unknown>;
 }

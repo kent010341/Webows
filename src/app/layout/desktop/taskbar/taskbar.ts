@@ -22,11 +22,14 @@
  * SOFTWARE.
  */
 
-import { Component } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { DatePipe } from '@angular/common';
+import { DESKTOP_APPS } from '@webows/core/apps/desktop-app.data';
 import { interval, map, startWith } from 'rxjs';
 import { LucideAngularModule, MenuIcon } from 'lucide-angular';
+import { TooltipModule } from 'primeng/tooltip';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { WindowManager } from '@webows/core/window/window-manager';
 
 /**
  * Taskbar with start button, apps and time placeholder.
@@ -36,6 +39,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
   imports: [
     DatePipe,
     LucideAngularModule,
+    TooltipModule,
   ],
   templateUrl: './taskbar.html',
   styleUrl: './taskbar.scss',
@@ -44,12 +48,24 @@ export class Taskbar {
 
   readonly MenuIcon = MenuIcon;
 
+  private readonly windowManager = inject(WindowManager);
+
   time = toSignal(
     interval(500).pipe(
       startWith(0),
       map(() => new Date()),
     )
   );
+
+  /**
+   * Distinct apps that currently have any instance open
+   */
+  readonly openApps = computed(() => {
+    const open = this.windowManager.windows();
+    const idSet = new Set(open.map(o => o.appId));
+
+    return [...idSet].map(id => DESKTOP_APPS[id]);
+  });
 
   /**
    * trigger when clicking menu button
