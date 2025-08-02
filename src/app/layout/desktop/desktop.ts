@@ -28,7 +28,6 @@ import { DESKTOP_APPS } from '@webows/core/apps/desktop-app.data';
 import { Taskbar } from '@webows/layout/desktop/taskbar/taskbar';
 import { WindowManager } from '@webows/core/window/window-manager';
 import { DesktopAppId } from '@webows/core/apps/desktop-app.enum';
-import { Window } from '@webows/components/window/window';
 import { Notepad } from '@webows/features/notepad/notepad';
 
 /**
