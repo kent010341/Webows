@@ -22,56 +22,30 @@
  * SOFTWARE.
  */
 
-import { Component, computed, inject } from '@angular/core';
-import { DatePipe } from '@angular/common';
-import { DESKTOP_APPS } from '@webows/core/apps/desktop-app.data';
-import { interval, map, startWith } from 'rxjs';
-import { LucideAngularModule, MenuIcon } from 'lucide-angular';
-import { TooltipModule } from 'primeng/tooltip';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { WindowManager } from '@webows/core/window/window-manager';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { LucideAngularModule, LucideIconData } from 'lucide-angular';
 
 /**
- * Taskbar with start button, apps and time placeholder.
+ * Represents a desktop application icon.
+ * Triggers `open` event on double click.
  */
 @Component({
-  selector: 'app-taskbar',
+  selector: 'app-app-icon',
   imports: [
-    DatePipe,
     LucideAngularModule,
-    TooltipModule,
   ],
-  templateUrl: './taskbar.html',
-  styleUrl: './taskbar.scss',
+  templateUrl: './app-icon.html',
+  styleUrl: './app-icon.scss'
 })
-export class Taskbar {
+export class AppIcon {
 
-  readonly MenuIcon = MenuIcon;
+  @Input()
+  icon!: LucideIconData;
 
-  private readonly windowManager = inject(WindowManager);
+  @Input()
+  label!: string;
 
-  time = toSignal(
-    interval(500).pipe(
-      startWith(0),
-      map(() => new Date()),
-    )
-  );
-
-  /**
-   * Distinct apps that currently have any instance open
-   */
-  readonly openApps = computed(() => {
-    const open = this.windowManager.windows();
-    const idSet = new Set(open.map(o => o.appId));
-
-    return [...idSet].map(id => DESKTOP_APPS[id]);
-  });
-
-  /**
-   * trigger when clicking menu button
-   */
-  openMenu(): void {
-
-  }
+  @Output()
+  open = new EventEmitter<void>();
 
 }

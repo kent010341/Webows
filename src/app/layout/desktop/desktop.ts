@@ -22,8 +22,13 @@
  * SOFTWARE.
  */
 
-import { Component } from '@angular/core';
+import { AppIcon } from '@webows/components/app-icon/app-icon';
+import { Component, inject, Injector } from '@angular/core';
+import { DESKTOP_APPS, WINDOW_INSTANCE_ID } from '@webows/core/apps/desktop-app.data';
 import { Taskbar } from '@webows/layout/desktop/taskbar/taskbar';
+import { WindowInstance, WindowManager } from '@webows/core/window/window-manager';
+import { DesktopAppId } from '@webows/core/apps/desktop-app.enum';
+import { NgComponentOutlet } from '@angular/common';
 
 /**
  * This component represents the main desktop environment.
@@ -33,11 +38,37 @@ import { Taskbar } from '@webows/layout/desktop/taskbar/taskbar';
 @Component({
   selector: 'app-desktop',
   imports: [
+    AppIcon,
     Taskbar,
+    NgComponentOutlet
   ],
   templateUrl: './desktop.html',
   styleUrl: './desktop.scss'
 })
 export class Desktop {
+
+  readonly DesktopAppId = DesktopAppId;
+  readonly DESKTOP_APPS = DESKTOP_APPS;
+
+  private readonly windowManager = inject(WindowManager);
+  private readonly injector = inject(Injector);
+
+  readonly apps = Object.values(DESKTOP_APPS);
+  readonly windows = this.windowManager.windows;
+
+
+  onLaunch(id: DesktopAppId): void {
+    this.windowManager.open(id);
+  }
+
+  createInjector(instance: WindowInstance): Injector {
+  return Injector.create({
+    providers: [
+      { provide: WINDOW_INSTANCE_ID, useValue: instance.instanceId },
+    ],
+    parent: this.injector,
+  });
+}
+
 
 }

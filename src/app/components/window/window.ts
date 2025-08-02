@@ -22,56 +22,49 @@
  * SOFTWARE.
  */
 
-import { Component, computed, inject } from '@angular/core';
-import { DatePipe } from '@angular/common';
-import { DESKTOP_APPS } from '@webows/core/apps/desktop-app.data';
-import { interval, map, startWith } from 'rxjs';
-import { LucideAngularModule, MenuIcon } from 'lucide-angular';
-import { TooltipModule } from 'primeng/tooltip';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { Component, computed, inject, Input, signal } from '@angular/core';
 import { WindowManager } from '@webows/core/window/window-manager';
+import { CopyIcon, LucideAngularModule, MinusIcon, SquareIcon, XIcon } from 'lucide-angular';
 
-/**
- * Taskbar with start button, apps and time placeholder.
- */
 @Component({
-  selector: 'app-taskbar',
+  selector: 'app-window',
   imports: [
-    DatePipe,
     LucideAngularModule,
-    TooltipModule,
   ],
-  templateUrl: './taskbar.html',
-  styleUrl: './taskbar.scss',
+  templateUrl: './window.html',
+  styleUrl: './window.scss'
 })
-export class Taskbar {
+export class Window {
 
-  readonly MenuIcon = MenuIcon;
+  readonly MinusIcon = MinusIcon;
+  readonly XIcon = XIcon;
+
+  @Input({required: true})
+  set title(t: string) {
+    this._appTitle.set(t);
+  }
+
+  @Input({required: true})
+  instanceId!: number;
 
   private readonly windowManager = inject(WindowManager);
 
-  time = toSignal(
-    interval(500).pipe(
-      startWith(0),
-      map(() => new Date()),
-    )
-  );
+  private readonly _appTitle = signal<string>('');
+  readonly appTitle = this._appTitle.asReadonly();
 
-  /**
-   * Distinct apps that currently have any instance open
-   */
-  readonly openApps = computed(() => {
-    const open = this.windowManager.windows();
-    const idSet = new Set(open.map(o => o.appId));
+  private readonly isMaximized = signal<boolean>(false);
+  readonly maxOrRestoreIcon = computed(() => this.isMaximized() ? CopyIcon : SquareIcon);
 
-    return [...idSet].map(id => DESKTOP_APPS[id]);
-  });
+  minimize(): void {
 
-  /**
-   * trigger when clicking menu button
-   */
-  openMenu(): void {
+  }
 
+  maximizeOrRestore(): void {
+    this.isMaximized.update(m => !m);
+  }
+
+  close(): void {
+    this.windowManager.close(this.instanceId);
   }
 
 }

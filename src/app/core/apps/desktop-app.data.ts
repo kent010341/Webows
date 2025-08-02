@@ -1,0 +1,50 @@
+/**
+ * MIT License
+ * 
+ * Copyright (c) 2025 Kent010341
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
+import { DesktopAppId } from './desktop-app.enum';
+import { DesktopAppMeta } from './desktop-app.model';
+import { InjectionToken } from '@angular/core';
+import { Notepad } from '@webows/features/notepad/notepad';
+import { StickyNoteIcon } from 'lucide-angular';
+
+export const DESKTOP_APPS: Record<DesktopAppId, DesktopAppMeta> = {
+  [DesktopAppId.Notepad]: {
+    id: DesktopAppId.Notepad,
+    icon: StickyNoteIcon,
+    label: 'Notepad',
+    component: Notepad,
+  },
+};
+
+/**
+ * Injection token used to provide a unique identifier for a window instance.
+ * Can be used within dynamic window components to access their own runtime identity.
+ *
+ * @usageNotes
+ * Inject this token in a dynamic app component (e.g. Notepad) to obtain its instance ID.
+ *
+ * @example
+ * const instanceId = inject(WINDOW_INSTANCE_ID);
+ */
+export const WINDOW_INSTANCE_ID = new InjectionToken<number>('WINDOW_INSTANCE_ID');
