@@ -23,9 +23,9 @@
  */
 
 import { AfterViewInit, Component, computed, ElementRef, inject, Input, signal, ViewChild } from '@angular/core';
-import { WindowManager } from '@webows/core/window/window-manager';
 import { CopyIcon, LucideAngularModule, MinusIcon, SquareIcon, XIcon } from 'lucide-angular';
 import { fromEvent, map, switchMap, takeUntil } from 'rxjs';
+import { WindowManager } from '@webows/core/window/window-manager';
 
 @Component({
   selector: 'app-window',
@@ -113,4 +113,52 @@ export class Window implements AfterViewInit {
     this.windowManager.close(this.instanceId);
   }
 
+  onResizeStart(event: MouseEvent, direction: ResizeDirection) {
+    const startX = event.clientX;
+    const startY = event.clientY;
+    const startRect = this.el.nativeElement.getBoundingClientRect();
+
+    const mouseMove$ = fromEvent<MouseEvent>(document, 'mousemove');
+    const mouseUp$ = fromEvent<MouseEvent>(document, 'mouseup');
+
+    mouseMove$.pipe(
+      takeUntil(mouseUp$),
+      map(move => {
+        const dx = move.clientX - startX;
+        const dy = move.clientY - startY;
+
+        let width = startRect.width;
+        let height = startRect.height;
+        let x = startRect.left;
+        let y = startRect.top;
+
+        // Adjust based on direction
+        if (direction.includes('e')) {
+          width += dx;
+        }
+        if (direction.includes('s')) {
+          height += dy;
+        }
+        if (direction.includes('w')) {
+          width -= dx;
+          x += dx;
+        }
+        if (direction.includes('n')) {
+          height -= dy;
+          y += dy;
+        }
+
+        return { width, height, x, y };
+      })
+    ).subscribe(({ width, height, x, y }) => {
+      this.windowManager.update(this.instanceId, {
+        position: { x: x, y: y },
+      });
+    });
+  }
+
 }
+
+type ResizeDirection =
+  | 'n' | 's' | 'e' | 'w'
+  | 'ne' | 'nw' | 'se' | 'sw';

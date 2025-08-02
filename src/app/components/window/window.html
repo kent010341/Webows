@@ -1,4 +1,17 @@
-<div class="absolute top-24 left-24 w-96 bg-[#1e1e1e] border border-[#3c3c3c] rounded shadow-lg text-white">
+<div class="absolute top-50 left-50 w-96 bg-[#1e1e1e] border border-[#3c3c3c] rounded shadow-lg text-white"  
+>
+  <!-- Resize handles -->
+  <div class="absolute top-0 left-0 h-2 w-2 cursor-nw-resize z-10" (mousedown)="onResizeStart($event, 'nw')"></div>
+  <div class="absolute top-0 right-0 h-2 w-2 cursor-ne-resize z-10" (mousedown)="onResizeStart($event, 'ne')"></div>
+  <div class="absolute bottom-0 left-0 h-2 w-2 cursor-sw-resize z-10" (mousedown)="onResizeStart($event, 'sw')"></div>
+  <div class="absolute bottom-0 right-0 h-2 w-2 cursor-se-resize z-10" (mousedown)="onResizeStart($event, 'se')"></div>
+
+  <!-- Edge handles -->
+  <div class="absolute top-0 left-2 right-2 h-1 cursor-n-resize z-10" (mousedown)="onResizeStart($event, 'n')"></div>
+  <div class="absolute bottom-0 left-2 right-2 h-1 cursor-s-resize z-10" (mousedown)="onResizeStart($event, 's')"></div>
+  <div class="absolute left-0 top-2 bottom-2 w-1 cursor-w-resize z-10" (mousedown)="onResizeStart($event, 'w')"></div>
+  <div class="absolute right-0 top-2 bottom-2 w-1 cursor-e-resize z-10" (mousedown)="onResizeStart($event, 'e')"></div>
+
   <!-- Title bar -->
   <div class="flex items-center justify-between bg-[#2a2a2a] px-3 py-1 border-b border-[#444]"
   >
