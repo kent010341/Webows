@@ -23,21 +23,39 @@
  */
 
 import { Component } from '@angular/core';
-import { Taskbar } from '@webows/layout/desktop/taskbar/taskbar';
+import { DatePipe } from '@angular/common';
+import { interval, map, startWith } from 'rxjs';
+import { LucideAngularModule, MenuIcon } from 'lucide-angular';
+import { toSignal } from '@angular/core/rxjs-interop';
 
 /**
- * This component represents the main desktop environment.
- * It acts as the root visual layer where desktop icons, open windows,
- * the taskbar, and start menu will be rendered.
+ * Taskbar with start button, apps and time placeholder.
  */
 @Component({
-  selector: 'app-desktop',
+  selector: 'app-taskbar',
   imports: [
-    Taskbar,
+    DatePipe,
+    LucideAngularModule,
   ],
-  templateUrl: './desktop.html',
-  styleUrl: './desktop.scss'
+  templateUrl: './taskbar.html',
+  styleUrl: './taskbar.scss',
 })
-export class Desktop {
+export class Taskbar {
+
+  readonly MenuIcon = MenuIcon;
+
+  time = toSignal(
+    interval(500).pipe(
+      startWith(0),
+      map(() => new Date()),
+    )
+  );
+
+  /**
+   * trigger when clicking menu button
+   */
+  openMenu(): void {
+
+  }
 
 }

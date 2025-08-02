@@ -1,0 +1,19 @@
+<div class="h-10 bg-gradient-to-t from-[#2d2d2d] to-[#3a3a3a] border-t border-[#5a5a5a] shadow-inner flex items-center justify-between px-2 text-xs z-50">
+
+  <!-- Launcher button -->
+  <div
+    class="flex items-center gap-2 px-2 py-1 rounded cursor-pointer hover:bg-[#404040] active:bg-[#505050] transition-colors select-none"
+    (click)="openMenu()"
+  >
+    <lucide-icon [img]="MenuIcon" class="w-4 h-4 text-white" />
+    <span class="text-white">Menu</span>
+  </div>
+
+  <!-- Clock -->
+  <div class="text-slate-300 flex flex-col items-center justify-center leading-tight text-right">
+    @if (time(); as t) {
+      <div class="text-white">{{ t | date: 'HH:mm:ss' }}</div>
+      <div class="text-white">{{ t | date: 'yyyy/MM/dd' }}</div>
+    }
+  </div>
+</div>
