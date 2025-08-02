@@ -22,14 +22,7 @@
  * SOFTWARE.
  */
 
-import type { LucideIconData } from 'lucide-angular';
-import { DesktopAppId } from './desktop-app.enum';
-
-/**
- * Represents a launchable app in the desktop UI.
- */
-export interface DesktopAppMeta {
-  id: DesktopAppId;
-  icon: LucideIconData;
-  label: string;
+export enum DesktopAppId {
+  Notepad = 'notepad',
+  // Add future apps here
 }

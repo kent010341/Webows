@@ -24,13 +24,14 @@
 
 import { StickyNoteIcon } from 'lucide-angular';
 import { DesktopAppMeta } from './desktop-app.model';
+import { DesktopAppId } from './desktop-app.enum';
 
 /**
  * List of all apps
  */
 export const DESKTOP_APPS: DesktopAppMeta[] = [
   {
-    id: 'notepad',
+    id: DesktopAppId.Notepad,
     icon: StickyNoteIcon,
     label: 'Notepad',
   },
