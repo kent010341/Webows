@@ -1,7 +1,10 @@
 <div class="absolute top-24 left-24 w-96 bg-[#1e1e1e] border border-[#3c3c3c] rounded shadow-lg text-white">
   <!-- Title bar -->
-  <div class="flex items-center justify-between bg-[#2a2a2a] px-3 py-1 border-b border-[#444]">
-    <span class="text-sm font-bold">{{ appTitle() }}</span>
+  <div class="flex items-center justify-between bg-[#2a2a2a] px-3 py-1 border-b border-[#444]"
+  >
+    <div #title class="text-sm font-bold flex-1">
+      {{ appTitle() }}
+    </div>
     <div class="flex flex-row gap-1">
         <!-- minimize -->
         <button

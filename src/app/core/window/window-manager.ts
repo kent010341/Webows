@@ -23,7 +23,8 @@
  */
 
 import { computed, Injectable, signal } from '@angular/core';
-import { DesktopAppId } from '../apps/desktop-app.enum';
+import { DesktopAppId } from '@webows/core/apps/desktop-app.enum';
+import { WindowInstance } from '@webows/core/apps/desktop-app.model';
 
 /**
  * Manages open desktop windows, including create and destroy.
@@ -63,16 +64,20 @@ export class WindowManager {
       return next;
     });
   }
+
+  /** Update the specified window */
+  update(instanceId: number, patch: Partial<WindowInstance>): void {
+    this.windowMap.update(pre => {
+      const curr = pre.get(instanceId);
+      if (!curr) {
+        return pre;
+      }
+
+      const next = new Map(pre);
+      next.set(instanceId, { ...curr, ...patch });
+
+      return next;
+    });
+  }
   
-}
-
-/** Data of an opening window */
-export interface WindowInstance {
-
-  appId: DesktopAppId;
-  
-  instanceId: number;
-
-  position: { x: number, y: number };
-
 }

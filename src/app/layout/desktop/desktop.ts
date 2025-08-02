@@ -25,10 +25,11 @@
 import { AppIcon } from '@webows/components/app-icon/app-icon';
 import { Component, inject, Injector } from '@angular/core';
 import { DESKTOP_APPS, WINDOW_INSTANCE_ID } from '@webows/core/apps/desktop-app.data';
-import { Taskbar } from '@webows/layout/desktop/taskbar/taskbar';
-import { WindowInstance, WindowManager } from '@webows/core/window/window-manager';
 import { DesktopAppId } from '@webows/core/apps/desktop-app.enum';
-import { NgComponentOutlet } from '@angular/common';
+import { CommonModule, NgComponentOutlet } from '@angular/common';
+import { Taskbar } from '@webows/layout/desktop/taskbar/taskbar';
+import { WindowInstance } from '@webows/core/apps/desktop-app.model';
+import { WindowManager } from '@webows/core/window/window-manager';
 
 /**
  * This component represents the main desktop environment.
@@ -39,8 +40,9 @@ import { NgComponentOutlet } from '@angular/common';
   selector: 'app-desktop',
   imports: [
     AppIcon,
+    CommonModule,
+    NgComponentOutlet,
     Taskbar,
-    NgComponentOutlet
   ],
   templateUrl: './desktop.html',
   styleUrl: './desktop.scss'

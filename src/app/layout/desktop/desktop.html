@@ -11,9 +11,11 @@
 
   <!-- Open windows -->
   @for (win of windows(); track win.instanceId) {
-    <ng-container [ngComponentOutlet]="DESKTOP_APPS[win.appId].component" 
-                  [ngComponentOutletInjector]="createInjector(win)">
-    </ng-container>
+    <div class="absolute" [style.left.px]="win.position.x" [style.top.px]="win.position.y">
+      <ng-container [ngComponentOutlet]="DESKTOP_APPS[win.appId].component" 
+        [ngComponentOutletInjector]="createInjector(win)">
+      </ng-container>
+    </div>
   }
 
   <!-- Taskbar -->

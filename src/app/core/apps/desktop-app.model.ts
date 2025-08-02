@@ -37,3 +37,25 @@ export interface DesktopAppMeta {
   /** the component of the app window */
   component: Type<unknown>;
 }
+
+/** Data of an opening window */
+export interface WindowInstance {
+
+  appId: DesktopAppId;
+  
+  instanceId: number;
+
+  position: Position;
+
+}
+
+/**
+ * Represents the position of an {@link WindowInstance}.
+ */
+export interface Position {
+
+  x: number;
+
+  y: number;
+
+}
