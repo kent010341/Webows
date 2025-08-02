@@ -11,11 +11,9 @@
 
   <!-- Open windows -->
   @for (win of windows(); track win.instanceId) {
-    @switch (win.appId) {
-      @case (DesktopAppId.Notepad) {
-        <app-notepad [instanceId]="win.instanceId"></app-notepad>
-      }
-    }
+    <ng-container [ngComponentOutlet]="WINDOW_COMPONENT_REGISTRY[win.appId]" 
+                  [ngComponentOutletInjector]="createInjector(win)">
+    </ng-container>
   }
 
   <!-- Taskbar -->

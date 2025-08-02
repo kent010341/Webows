@@ -23,12 +23,12 @@
  */
 
 import { AppIcon } from '@webows/components/app-icon/app-icon';
-import { Component, inject, signal } from '@angular/core';
-import { DESKTOP_APPS } from '@webows/core/apps/desktop-app.data';
+import { Component, inject, Injector, signal } from '@angular/core';
+import { DESKTOP_APPS, WINDOW_COMPONENT_REGISTRY, WINDOW_INSTANCE_ID } from '@webows/core/apps/desktop-app.data';
 import { Taskbar } from '@webows/layout/desktop/taskbar/taskbar';
-import { WindowManager } from '@webows/core/window/window-manager';
+import { WindowInstance, WindowManager } from '@webows/core/window/window-manager';
 import { DesktopAppId } from '@webows/core/apps/desktop-app.enum';
-import { Notepad } from '@webows/features/notepad/notepad';
+import { NgComponentOutlet } from '@angular/common';
 
 /**
  * This component represents the main desktop environment.
@@ -40,7 +40,7 @@ import { Notepad } from '@webows/features/notepad/notepad';
   imports: [
     AppIcon,
     Taskbar,
-    Notepad,
+    NgComponentOutlet
   ],
   templateUrl: './desktop.html',
   styleUrl: './desktop.scss'
@@ -48,14 +48,27 @@ import { Notepad } from '@webows/features/notepad/notepad';
 export class Desktop {
 
   readonly DesktopAppId = DesktopAppId;
+  readonly WINDOW_COMPONENT_REGISTRY = WINDOW_COMPONENT_REGISTRY;
 
   private readonly windowManager = inject(WindowManager);
+  private readonly injector = inject(Injector);
 
   readonly apps = signal(DESKTOP_APPS);
   readonly windows = this.windowManager.windows;
 
+
   onLaunch(id: DesktopAppId): void {
     this.windowManager.open(id);
   }
+
+  createInjector(instance: WindowInstance): Injector {
+  return Injector.create({
+    providers: [
+      { provide: WINDOW_INSTANCE_ID, useValue: instance.instanceId },
+    ],
+    parent: this.injector,
+  });
+}
+
 
 }

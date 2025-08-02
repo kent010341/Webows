@@ -22,8 +22,9 @@
  * SOFTWARE.
  */
 
-import { Component, Input, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { Window } from '@webows/components/window/window';
+import { WINDOW_INSTANCE_ID } from '@webows/core/apps/desktop-app.data';
 
 /**
  * Simple notepad app with static textarea.
@@ -38,8 +39,7 @@ import { Window } from '@webows/components/window/window';
 })
 export class Notepad {
 
-  @Input({required: true})
-  instanceId!: number;
+  instanceId = inject(WINDOW_INSTANCE_ID, { optional: true }) ?? -1;
 
   private readonly _appTitle = signal<string>('Notepad');
   readonly appTitle = this._appTitle.asReadonly();

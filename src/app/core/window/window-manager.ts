@@ -35,7 +35,7 @@ export class WindowManager {
 
   private uniqueId = 0;
 
-  private readonly _windows = signal<OpenWindow[]>([]);
+  private readonly _windows = signal<WindowInstance[]>([]);
   readonly windows = this._windows.asReadonly();
 
   /** Opens a new app window */
@@ -50,7 +50,8 @@ export class WindowManager {
   
 }
 
-export interface OpenWindow {
+/** Data of an opening window */
+export interface WindowInstance {
 
   instanceId: number;
   appId: DesktopAppId;

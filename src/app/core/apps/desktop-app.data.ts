@@ -22,9 +22,11 @@
  * SOFTWARE.
  */
 
-import { StickyNoteIcon } from 'lucide-angular';
-import { DesktopAppMeta } from './desktop-app.model';
 import { DesktopAppId } from './desktop-app.enum';
+import { DesktopAppMeta } from './desktop-app.model';
+import { Notepad } from '@webows/features/notepad/notepad';
+import { StickyNoteIcon } from 'lucide-angular';
+import { InjectionToken, Type } from '@angular/core';
 
 /**
  * List of all apps
@@ -36,3 +38,24 @@ export const DESKTOP_APPS: DesktopAppMeta[] = [
     label: 'Notepad',
   },
 ];
+
+/**
+ * Registry mapping DesktopAppId to corresponding Angular standalone component.
+ * Used by the window manager to dynamically resolve and render app components
+ * via ngComponentOutlet.
+ */
+export const WINDOW_COMPONENT_REGISTRY: Record<DesktopAppId, Type<unknown>> = {
+  [DesktopAppId.Notepad]: Notepad,
+};
+
+/**
+ * Injection token used to provide a unique identifier for a window instance.
+ * Can be used within dynamic window components to access their own runtime identity.
+ *
+ * @usageNotes
+ * Inject this token in a dynamic app component (e.g. Notepad) to obtain its instance ID.
+ *
+ * @example
+ * const instanceId = inject(WINDOW_INSTANCE_ID);
+ */
+export const WINDOW_INSTANCE_ID = new InjectionToken<number>('WINDOW_INSTANCE_ID');
