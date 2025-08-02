@@ -22,31 +22,13 @@
  * SOFTWARE.
  */
 
-import { Component, signal } from '@angular/core';
-import { AppIcon } from '@webows/components/app-icon/app-icon';
-import { DESKTOP_APPS } from '@webows/core/apps/desktop-app.data';
-import { Taskbar } from '@webows/layout/desktop/taskbar/taskbar';
+import type { LucideIconData } from 'lucide-angular';
 
 /**
- * This component represents the main desktop environment.
- * It acts as the root visual layer where desktop icons, open windows,
- * the taskbar, and start menu will be rendered.
+ * Represents a launchable app in the desktop UI.
  */
-@Component({
-  selector: 'app-desktop',
-  imports: [
-    AppIcon,
-    Taskbar,
-  ],
-  templateUrl: './desktop.html',
-  styleUrl: './desktop.scss'
-})
-export class Desktop {
-
-  readonly apps = signal(DESKTOP_APPS);
-
-  onLaunch(id: string): void {
-    
-  }
-
+export interface DesktopAppMeta {
+  id: string;
+  icon: LucideIconData;
+  label: string;
 }

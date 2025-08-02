@@ -22,31 +22,16 @@
  * SOFTWARE.
  */
 
-import { Component, signal } from '@angular/core';
-import { AppIcon } from '@webows/components/app-icon/app-icon';
-import { DESKTOP_APPS } from '@webows/core/apps/desktop-app.data';
-import { Taskbar } from '@webows/layout/desktop/taskbar/taskbar';
+import { StickyNoteIcon } from 'lucide-angular';
+import { DesktopAppMeta } from './desktop-app.model';
 
 /**
- * This component represents the main desktop environment.
- * It acts as the root visual layer where desktop icons, open windows,
- * the taskbar, and start menu will be rendered.
+ * List of all apps
  */
-@Component({
-  selector: 'app-desktop',
-  imports: [
-    AppIcon,
-    Taskbar,
-  ],
-  templateUrl: './desktop.html',
-  styleUrl: './desktop.scss'
-})
-export class Desktop {
-
-  readonly apps = signal(DESKTOP_APPS);
-
-  onLaunch(id: string): void {
-    
-  }
-
-}
+export const DESKTOP_APPS: DesktopAppMeta[] = [
+  {
+    id: 'notepad',
+    icon: StickyNoteIcon,
+    label: 'Notepad',
+  },
+];

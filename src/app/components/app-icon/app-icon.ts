@@ -22,31 +22,30 @@
  * SOFTWARE.
  */
 
-import { Component, signal } from '@angular/core';
-import { AppIcon } from '@webows/components/app-icon/app-icon';
-import { DESKTOP_APPS } from '@webows/core/apps/desktop-app.data';
-import { Taskbar } from '@webows/layout/desktop/taskbar/taskbar';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { LucideAngularModule, LucideIconData } from 'lucide-angular';
 
 /**
- * This component represents the main desktop environment.
- * It acts as the root visual layer where desktop icons, open windows,
- * the taskbar, and start menu will be rendered.
+ * Represents a desktop application icon.
+ * Triggers `open` event on double click.
  */
 @Component({
-  selector: 'app-desktop',
+  selector: 'app-app-icon',
   imports: [
-    AppIcon,
-    Taskbar,
+    LucideAngularModule,
   ],
-  templateUrl: './desktop.html',
-  styleUrl: './desktop.scss'
+  templateUrl: './app-icon.html',
+  styleUrl: './app-icon.scss'
 })
-export class Desktop {
+export class AppIcon {
 
-  readonly apps = signal(DESKTOP_APPS);
+  @Input()
+  icon!: LucideIconData;
 
-  onLaunch(id: string): void {
-    
-  }
+  @Input()
+  label!: string;
+
+  @Output()
+  open = new EventEmitter<void>();
 
 }
