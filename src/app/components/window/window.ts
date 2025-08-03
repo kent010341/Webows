@@ -24,7 +24,7 @@
 
 import { AfterViewInit, Component, computed, ElementRef, inject, Input, signal, ViewChild } from '@angular/core';
 import { CopyIcon, LucideAngularModule, MinusIcon, SquareIcon, XIcon } from 'lucide-angular';
-import { fromEvent, map, switchMap, takeUntil } from 'rxjs';
+import { filter, fromEvent, map, switchMap, takeUntil } from 'rxjs';
 import { WindowManager } from '@webows/core/window/window-manager';
 import { WindowInstance, WindowInstanceState, WindowPosition, WindowSize } from '@webows/core/apps/desktop-app.model';
 import { NgClass, NgStyle } from '@angular/common';
@@ -135,6 +135,7 @@ export class Window implements AfterViewInit {
     const mouseUp$ = fromEvent<MouseEvent>(document, 'mouseup');
 
     mouseDown$.pipe(
+      filter(() => !this.isMaximized()),
       switchMap((startEvent) => {
         const rect = this.el.nativeElement.getBoundingClientRect();
 
