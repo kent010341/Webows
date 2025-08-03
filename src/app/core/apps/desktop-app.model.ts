@@ -45,17 +45,28 @@ export interface WindowInstance {
   
   instanceId: number;
 
-  position: Position;
+  position: WindowPosition;
 
 }
 
 /**
  * Represents the position of an {@link WindowInstance}.
  */
-export interface Position {
+export interface WindowPosition {
 
   x: number;
 
   y: number;
+
+}
+
+/**
+ * Represents the size of an {@link WindowInstance}.
+ */
+export interface WindowSize {
+
+  width: number;
+
+  height: number;
 
 }

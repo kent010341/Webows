@@ -4,7 +4,7 @@
   <div class="flex-1 relative">
     <div class="absolute top-6 left-6 flex flex-col gap-4">
       @for (app of apps; track app.id) {
-      <app-app-icon [icon]="app.icon" [label]="app.label" (open)="onLaunch(app.id)" />
+        <app-app-icon [icon]="app.icon" [label]="app.label" (open)="onLaunch(app.id)" />
       }
     </div>
   </div>
@@ -12,9 +12,11 @@
   <!-- Open windows -->
   @for (win of windows(); track win.instanceId) {
     <div class="absolute" [style.left.px]="win.position.x" [style.top.px]="win.position.y">
-      <ng-container [ngComponentOutlet]="DESKTOP_APPS[win.appId].component" 
-        [ngComponentOutletInjector]="createInjector(win)">
-      </ng-container>
+      @switch (win.appId) {
+        @case (DesktopAppId.Notepad) {
+          <app-notepad [instanceId]="win.instanceId"></app-notepad>
+        }
+      }
     </div>
   }
 

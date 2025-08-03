@@ -36,15 +36,3 @@ export const DESKTOP_APPS: Record<DesktopAppId, DesktopAppMeta> = {
     component: Notepad,
   },
 };
-
-/**
- * Injection token used to provide a unique identifier for a window instance.
- * Can be used within dynamic window components to access their own runtime identity.
- *
- * @usageNotes
- * Inject this token in a dynamic app component (e.g. Notepad) to obtain its instance ID.
- *
- * @example
- * const instanceId = inject(WINDOW_INSTANCE_ID);
- */
-export const WINDOW_INSTANCE_ID = new InjectionToken<number>('WINDOW_INSTANCE_ID');

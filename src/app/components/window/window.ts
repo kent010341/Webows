@@ -26,6 +26,7 @@ import { AfterViewInit, Component, computed, ElementRef, inject, Input, signal, 
 import { CopyIcon, LucideAngularModule, MinusIcon, SquareIcon, XIcon } from 'lucide-angular';
 import { fromEvent, map, switchMap, takeUntil } from 'rxjs';
 import { WindowManager } from '@webows/core/window/window-manager';
+import { WindowSize } from '@webows/core/apps/desktop-app.model';
 
 @Component({
   selector: 'app-window',
@@ -50,6 +51,9 @@ export class Window implements AfterViewInit {
   @Input({ required: true })
   instanceId!: number;
 
+  @ViewChild('window')
+  private readonly windowEl!: ElementRef<HTMLDivElement>;
+
   /** Element reference for the window's title (used as drag handle) */
   @ViewChild('title', {static: true})
   private readonly titleEl!: ElementRef<HTMLDivElement>;
@@ -64,6 +68,10 @@ export class Window implements AfterViewInit {
 
   private readonly isMaximized = signal<boolean>(false);
   readonly maxOrRestoreIcon = computed(() => this.isMaximized() ? CopyIcon : SquareIcon);
+
+  private readonly size = signal<WindowSize>({ width: -1, height: -1 });
+  readonly width = computed(() => this.size().width);
+  readonly height = computed(() => this.size().height);
 
   /**
    * Initialize RxJS streams for mouse-based dragging.
@@ -116,7 +124,14 @@ export class Window implements AfterViewInit {
   onResizeStart(event: MouseEvent, direction: ResizeDirection) {
     const startX = event.clientX;
     const startY = event.clientY;
-    const startRect = this.el.nativeElement.getBoundingClientRect();
+
+    // elRect is used for accurate position (x, y) tracking.
+    // This refers to the outer root container which retains correct DOM position.
+    const elRect = this.el.nativeElement.getBoundingClientRect();
+
+    // windowRect is used for accurate size (width, height) tracking.
+    // This refers to the inner resizable container which reflects the actual content size.
+    const windowRect = this.windowEl.nativeElement.getBoundingClientRect();
 
     const mouseMove$ = fromEvent<MouseEvent>(document, 'mousemove');
     const mouseUp$ = fromEvent<MouseEvent>(document, 'mouseup');
@@ -127,10 +142,10 @@ export class Window implements AfterViewInit {
         const dx = move.clientX - startX;
         const dy = move.clientY - startY;
 
-        let width = startRect.width;
-        let height = startRect.height;
-        let x = startRect.left;
-        let y = startRect.top;
+        let width = windowRect.width;
+        let height = windowRect.height;
+        let x = elRect.left;
+        let y = elRect.top;
 
         // Adjust based on direction
         if (direction.includes('e')) {
@@ -152,13 +167,12 @@ export class Window implements AfterViewInit {
       })
     ).subscribe(({ width, height, x, y }) => {
       this.windowManager.update(this.instanceId, {
-        position: { x: x, y: y },
+        position: { x, y },
       });
+      this.size.set({width, height});
     });
   }
 
 }
 
-type ResizeDirection =
-  | 'n' | 's' | 'e' | 'w'
-  | 'ne' | 'nw' | 'se' | 'sw';
+type ResizeDirection = 'n' | 's' | 'e' | 'w' | 'ne' | 'nw' | 'se' | 'sw';
