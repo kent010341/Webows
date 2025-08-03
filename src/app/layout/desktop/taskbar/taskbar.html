@@ -2,7 +2,7 @@
 
   <!-- Launcher button -->
   <div
-    class="flex items-center gap-2 px-2 py-1 rounded cursor-pointer hover:bg-[#404040] active:bg-[#505050] transition-colors select-none"
+    class="flex h-full items-center gap-2 px-2 py-1 rounded cursor-pointer hover:bg-[#404040] active:bg-[#505050] transition-colors select-none"
     (click)="menuToggle.emit()"
   >
     <lucide-icon [img]="MenuIcon" class="w-4 h-4 text-white" />
@@ -23,11 +23,23 @@
     }
   </div>
 
-  <!-- Clock -->
-  <div class="text-slate-300 flex flex-col items-center justify-center leading-tight text-right">
-    @if (time(); as t) {
-      <div class="text-white">{{ t | date: 'HH:mm:ss' }}</div>
-      <div class="text-white">{{ t | date: 'yyyy/MM/dd' }}</div>
-    }
+  <div class="flex items-center gap-3 h-full">
+    <!-- GitHub -->
+    <div
+      class="h-full flex items-center gap-2 px-3 cursor-pointer rounded hover:bg-[#404040] active:bg-[#505050] transition-colors select-none"
+      pTooltip="View Source on GitHub"
+      tooltipPosition="top"
+      (click)="openGithub()"
+    >
+      <lucide-icon [img]="GithubIcon" class="w-4 h-4 text-white" />
+    </div>
+
+    <!-- Clock -->
+    <div class="text-slate-300 flex flex-col items-center justify-center leading-tight text-right">
+      @if (time(); as t) {
+        <div class="text-white">{{ t | date: 'HH:mm:ss' }}</div>
+        <div class="text-white">{{ t | date: 'yyyy/MM/dd' }}</div>
+      }
+    </div>
   </div>
 </div>
