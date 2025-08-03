@@ -7,6 +7,13 @@
         <app-app-icon [icon]="app.icon" [label]="app.label" (open)="onLaunch(app)" />
       }
     </div>
+
+    <!-- Floating menu panel -->
+    @if (showMenu()) {
+      <app-menu class="absolute bottom-0 left-2 z-[1000]"
+        (appLaunch)="toggleMenu()"
+      />
+    }
   </div>
 
   <!-- Open windows -->
@@ -23,5 +30,5 @@
   }
 
   <!-- Taskbar -->
-  <app-taskbar style="z-index: 1000000;" />
+  <app-taskbar style="z-index: 1000000;" (menuToggle)="toggleMenu()" />
 </div>

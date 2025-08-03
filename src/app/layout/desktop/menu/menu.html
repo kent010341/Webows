@@ -1,0 +1,11 @@
+<div class="w-56 bg-[#2b2b2b] border border-[#444] rounded shadow-md py-1">
+  @for (app of apps; track app.id) {
+    <div
+      class="flex items-center gap-2 px-3 h-10 text-white text-sm cursor-pointer hover:bg-[#3a3a3a] active:bg-[#4a4a4a] select-none"
+      (click)="onLaunch(app)"
+    >
+      <lucide-icon [img]="app.icon" class="w-4 h-4 text-white" />
+      <span>{{ app.label }}</span>
+    </div>
+  }
+</div>

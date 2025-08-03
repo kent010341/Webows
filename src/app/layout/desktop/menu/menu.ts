@@ -22,55 +22,35 @@
  * SOFTWARE.
  */
 
-import { AppIcon } from '@webows/components/app-icon/app-icon';
-import { Component, inject, signal } from '@angular/core';
+import { Component, EventEmitter, inject, Output } from '@angular/core';
 import { DESKTOP_APPS } from '@webows/core/apps/desktop-app.data';
-import { DesktopAppId } from '@webows/core/apps/desktop-app.enum';
-import { Taskbar } from '@webows/layout/desktop/taskbar/taskbar';
-import { WindowManager } from '@webows/core/window/window-manager';
-import { Notepad } from '@webows/features/notepad/notepad';
 import { DesktopAppMeta } from '@webows/core/apps/desktop-app.model';
-import { Menu } from '@webows/layout/desktop/menu/menu';
+import { WindowManager } from '@webows/core/window/window-manager';
+import { LucideAngularModule } from 'lucide-angular';
 
 /**
- * This component represents the main desktop environment.
- * It acts as the root visual layer where desktop icons, open windows,
- * the taskbar, and start menu will be rendered.
+ * Menu panel showing all registered apps.
  */
 @Component({
-  selector: 'app-desktop',
+  selector: 'app-menu',
   imports: [
-    AppIcon,
-    Menu,
-    Notepad,
-    Taskbar,
+    LucideAngularModule,
   ],
-  templateUrl: './desktop.html',
-  styleUrl: './desktop.scss'
+  templateUrl: './menu.html',
+  styleUrl: './menu.scss'
 })
-export class Desktop {
+export class Menu {
 
-  readonly DesktopAppId = DesktopAppId;
-  readonly DESKTOP_APPS = DESKTOP_APPS;
+  readonly apps = Object.values(DESKTOP_APPS);
+
+  @Output()
+  readonly appLaunch = new EventEmitter<void>();
 
   private readonly windowManager = inject(WindowManager);
 
-  readonly apps = Object.values(DESKTOP_APPS);
-  readonly windows = this.windowManager.windows;
-
-  private readonly _showMenu = signal(false);
-  readonly showMenu = this._showMenu.asReadonly();
-
-  onLaunch(id: DesktopAppMeta): void {
-    this.windowManager.open(id);
-  }
-
-  toggleMenu(): void {
-    this._showMenu.update(s => !s);
-  }
-
-  hideMenu(): void {
-    this._showMenu.set(false);
+  onLaunch(app: DesktopAppMeta): void {
+    this.windowManager.open(app);
+    this.appLaunch.emit();
   }
 
 }
