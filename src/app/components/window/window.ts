@@ -26,7 +26,7 @@ import { AfterViewInit, Component, computed, ElementRef, inject, Input, signal, 
 import { CopyIcon, LucideAngularModule, MinusIcon, SquareIcon, XIcon } from 'lucide-angular';
 import { fromEvent, map, switchMap, takeUntil } from 'rxjs';
 import { WindowManager } from '@webows/core/window/window-manager';
-import { WindowSize } from '@webows/core/apps/desktop-app.model';
+import { WindowInstance, WindowInstanceState, WindowPosition, WindowSize } from '@webows/core/apps/desktop-app.model';
 
 @Component({
   selector: 'app-window',
@@ -47,9 +47,11 @@ export class Window implements AfterViewInit {
     this._appTitle.set(t);
   }
 
-  /** The unique identifier for this window instance */
+  /** The window instance */
   @Input({ required: true })
-  instanceId!: number;
+  set instance(inst: WindowInstance) {
+    this.windowInstance.set(inst);
+  }
 
   @ViewChild('window')
   private readonly windowEl!: ElementRef<HTMLDivElement>;
@@ -66,12 +68,23 @@ export class Window implements AfterViewInit {
   private readonly _appTitle = signal<string>('');
   readonly appTitle = this._appTitle.asReadonly();
 
-  private readonly isMaximized = signal<boolean>(false);
+  private readonly windowInstance = signal<WindowInstance | null>(null);
+
+  private readonly isMaximized = computed(() => this.windowInstance()?.state === WindowInstanceState.MAXIMIZED);
+  
   readonly maxOrRestoreIcon = computed(() => this.isMaximized() ? CopyIcon : SquareIcon);
 
   private readonly size = signal<WindowSize>({ width: -1, height: -1 });
   readonly width = computed(() => this.size().width);
   readonly height = computed(() => this.size().height);
+
+  private readonly position = computed(() => this.windowInstance()?.position);
+
+  /** Cache original size before maximize */
+  private cachedSize?: WindowSize;
+
+  /** Cache original position before maximize */
+  private cachedPos?: WindowPosition;
 
   /**
    * Initialize RxJS streams for mouse-based dragging.
@@ -103,7 +116,7 @@ export class Window implements AfterViewInit {
         );
       }),
     ).subscribe(position => {
-      this.windowManager.update(this.instanceId, {
+      this.windowManager.update(this.windowInstance()!.instanceId, {
         position,
       });
     });
@@ -111,19 +124,27 @@ export class Window implements AfterViewInit {
 
   moveToTop(event: Event): void {
     event.stopPropagation();
-    this.windowManager.moveToTop(this.instanceId);
+    this.windowManager.moveToTop(this.windowInstance()!.instanceId);
   }
 
   minimize(): void {
-
+    this.windowManager.minimize(this.windowInstance()!.instanceId);
   }
 
   maximizeOrRestore(): void {
-    this.isMaximized.update(m => !m);
+    if (!this.isMaximized()) {
+      this.cachedSize = this.size();
+      this.cachedPos = this.position();
+      this.windowManager.maximize(this.windowInstance()!.instanceId);
+    } else {
+      this.applyPosition(this.cachedPos);
+      this.applySize(this.cachedSize);
+      this.windowManager.minimize(this.windowInstance()!.instanceId);
+    }
   }
 
   close(): void {
-    this.windowManager.close(this.instanceId);
+    this.windowManager.close(this.windowInstance()!.instanceId);
   }
 
   onResizeStart(event: MouseEvent, direction: ResizeDirection) {
@@ -171,11 +192,25 @@ export class Window implements AfterViewInit {
         return { width, height, x, y };
       })
     ).subscribe(({ width, height, x, y }) => {
-      this.windowManager.update(this.instanceId, {
+      this.windowManager.update(this.windowInstance()!.instanceId, {
         position: { x, y },
       });
-      this.size.set({width, height});
+      this.applySize({width, height});
     });
+  }
+
+  private applySize(size: WindowSize | undefined): void {
+    if (!size) {
+      this.size.set({ width: -1, height: -1 })
+    } else {
+      this.size.set(size);
+    }
+  }
+
+  private applyPosition(position: WindowPosition | undefined): void {
+    if (position) {
+      this.windowManager.update(this.windowInstance()!.instanceId, { position });
+    }
   }
 
 }

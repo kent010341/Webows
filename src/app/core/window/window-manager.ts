@@ -24,7 +24,7 @@
 
 import { computed, Injectable, signal } from '@angular/core';
 import { DesktopAppId } from '@webows/core/apps/desktop-app.enum';
-import { WindowInstance } from '@webows/core/apps/desktop-app.model';
+import { WindowInstance, WindowInstanceState } from '@webows/core/apps/desktop-app.model';
 
 /**
  * Manages open desktop windows, including create and destroy.
@@ -71,7 +71,8 @@ export class WindowManager {
         appId,
         instanceId: nextId,
         position: { x: 20, y: 20 },
-        zIndex: 0  // temporary, will be recalculated
+        zIndex: 0,  // temporary, will be recalculated
+        state: WindowInstanceState.NORMAL,
       });
 
       return next;
@@ -111,6 +112,18 @@ export class WindowManager {
   /** Brings a window to the top of stacking order */
   moveToTop(instanceId: number): void {
     this.windowOrder.update(prev => [instanceId, ...prev.filter(id => id !== instanceId)]);
+  }
+
+  minimize(instanceId: number): void {
+    this.update(instanceId, {state: WindowInstanceState.MINIMIZED});
+  }
+
+  maximize(instanceId: number): void {
+    this.update(instanceId, {state: WindowInstanceState.MAXIMIZED});
+  }
+
+  restore(instanceId: number): void {
+    this.update(instanceId, {state: WindowInstanceState.NORMAL});
   }
 
 }

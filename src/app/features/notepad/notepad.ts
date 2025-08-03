@@ -24,6 +24,7 @@
 
 import { Component, Input, signal } from '@angular/core';
 import { Window } from '@webows/components/window/window';
+import { WindowInstance } from '@webows/core/apps/desktop-app.model';
 
 /**
  * Simple notepad app with static textarea.
@@ -39,7 +40,7 @@ import { Window } from '@webows/components/window/window';
 export class Notepad {
 
   @Input({required: true})
-  instanceId!: number;
+  instance!: WindowInstance;
 
   private readonly _appTitle = signal<string>('Notepad');
   readonly appTitle = this._appTitle.asReadonly();
