@@ -1,5 +1,5 @@
-<div #window class="absolute top-50 left-50 w-96 bg-[#1e1e1e] border border-[#3c3c3c] rounded shadow-lg text-white flex flex-col"  
-  [style.width.px]="width()" [style.height.px]="height()" (click)="moveToTop($event)"
+<div #window class="absolute bg-[#1e1e1e] border border-[#3c3c3c] rounded shadow-lg text-white flex flex-col"  
+  [ngClass]="windowClass()" [ngStyle]="windowStyle()" (click)="moveToTop($event)"
 >
   <!-- Resize handles -->
   <div class="absolute top-0 left-0 h-2 w-2 cursor-nw-resize z-10" (mousedown)="onResizeStart($event, 'nw')"></div>

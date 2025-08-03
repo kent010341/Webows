@@ -70,7 +70,7 @@ export class WindowManager {
       next.set(nextId, {
         appId,
         instanceId: nextId,
-        position: { x: 20, y: 20 },
+        position: { x: 200, y: 200 },
         zIndex: 0,  // temporary, will be recalculated
         state: WindowInstanceState.NORMAL,
       });

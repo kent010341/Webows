@@ -27,11 +27,18 @@ import { CopyIcon, LucideAngularModule, MinusIcon, SquareIcon, XIcon } from 'luc
 import { fromEvent, map, switchMap, takeUntil } from 'rxjs';
 import { WindowManager } from '@webows/core/window/window-manager';
 import { WindowInstance, WindowInstanceState, WindowPosition, WindowSize } from '@webows/core/apps/desktop-app.model';
+import { NgClass, NgStyle } from '@angular/common';
 
+/**
+ * Represents a single resizable, draggable, and stateful desktop window.
+ * Handles UI behaviors like minimize, maximize, restore, and dynamic position/size.
+ */
 @Component({
   selector: 'app-window',
   imports: [
     LucideAngularModule,
+    NgClass,
+    NgStyle,
   ],
   templateUrl: './window.html',
   styleUrl: './window.scss'
@@ -53,6 +60,7 @@ export class Window implements AfterViewInit {
     this.windowInstance.set(inst);
   }
 
+  /** DOM reference to the resizable content area */
   @ViewChild('window')
   private readonly windowEl!: ElementRef<HTMLDivElement>;
 
@@ -60,6 +68,7 @@ export class Window implements AfterViewInit {
   @ViewChild('title', {static: true})
   private readonly titleEl!: ElementRef<HTMLDivElement>;
 
+  /** Service injection for centralized window state management */
   private readonly windowManager = inject(WindowManager);
 
   /** Root container element of the window */
@@ -68,16 +77,21 @@ export class Window implements AfterViewInit {
   private readonly _appTitle = signal<string>('');
   readonly appTitle = this._appTitle.asReadonly();
 
+  /** The window instance */
   private readonly windowInstance = signal<WindowInstance | null>(null);
 
+  /** Whether the window is currently maximized */
   private readonly isMaximized = computed(() => this.windowInstance()?.state === WindowInstanceState.MAXIMIZED);
   
+  /** Icon to show for the maximize/restore toggle button */
   readonly maxOrRestoreIcon = computed(() => this.isMaximized() ? CopyIcon : SquareIcon);
 
+  /** Current window dimensions */
   private readonly size = signal<WindowSize>({ width: -1, height: -1 });
   readonly width = computed(() => this.size().width);
   readonly height = computed(() => this.size().height);
 
+  /** Current window top-left position */
   private readonly position = computed(() => this.windowInstance()?.position);
 
   /** Cache original size before maximize */
@@ -85,6 +99,30 @@ export class Window implements AfterViewInit {
 
   /** Cache original position before maximize */
   private cachedPos?: WindowPosition;
+
+  /** Computed Tailwind class bindings based on maximize state */
+  readonly windowClass = computed(() => {
+    return this.isMaximized()
+      ? {
+        'w-screen': true,
+        'h-[calc(100vh-40px)]': true,
+        'top-0': true,
+        'left-0': true,
+      }
+      : {
+        'w-96': true,
+      };
+  });
+
+  /** Computed inline styles for dimensions */
+  readonly windowStyle = computed(() => {
+    return this.isMaximized()
+      ? {}
+      : {
+        width: `${this.width()}px`,
+        height: `${this.height()}px`,
+      }
+  });
 
   /**
    * Initialize RxJS streams for mouse-based dragging.
@@ -122,31 +160,50 @@ export class Window implements AfterViewInit {
     });
   }
 
+  /**
+   * Brings this window to the top of the stacking order.
+   * Triggered by clicking anywhere on the window.
+   */
   moveToTop(event: Event): void {
     event.stopPropagation();
     this.windowManager.moveToTop(this.windowInstance()!.instanceId);
   }
 
+  /**
+   * Minimizes the window, hiding it from view (but not closing).
+   */
   minimize(): void {
     this.windowManager.minimize(this.windowInstance()!.instanceId);
   }
 
+  /**
+   * Toggles between maximized and restored layout.
+   * Saves current size and position on maximize; restores it when toggling back.
+   */
   maximizeOrRestore(): void {
     if (!this.isMaximized()) {
       this.cachedSize = this.size();
       this.cachedPos = this.position();
+      this.applyPosition({x: 0, y: 0});
       this.windowManager.maximize(this.windowInstance()!.instanceId);
     } else {
       this.applyPosition(this.cachedPos);
       this.applySize(this.cachedSize);
-      this.windowManager.minimize(this.windowInstance()!.instanceId);
+      this.windowManager.restore(this.windowInstance()!.instanceId);
     }
   }
 
+  /**
+   * Closes the window and removes it from WindowManager.
+   */
   close(): void {
     this.windowManager.close(this.windowInstance()!.instanceId);
   }
 
+  /**
+   * Handles window resize via mouse drag on corner or edge handles.
+   * Dynamically adjusts both size and position depending on the direction.
+   */
   onResizeStart(event: MouseEvent, direction: ResizeDirection) {
     const startX = event.clientX;
     const startY = event.clientY;
@@ -199,6 +256,10 @@ export class Window implements AfterViewInit {
     });
   }
 
+  /**
+   * Updates the reactive size signal.
+   * If undefined, resets to invalid (-1) to avoid applying stale bounds.
+   */
   private applySize(size: WindowSize | undefined): void {
     if (!size) {
       this.size.set({ width: -1, height: -1 })
@@ -207,6 +268,9 @@ export class Window implements AfterViewInit {
     }
   }
 
+  /**
+   * Applies new position to the WindowManager.
+   */
   private applyPosition(position: WindowPosition | undefined): void {
     if (position) {
       this.windowManager.update(this.windowInstance()!.instanceId, { position });
