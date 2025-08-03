@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-import { Component, computed, inject, Signal } from '@angular/core';
+import { Component, computed, EventEmitter, inject, Output, Signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { DESKTOP_APPS } from '@webows/core/apps/desktop-app.data';
 import { interval, map, startWith } from 'rxjs';
@@ -49,6 +49,9 @@ export class Taskbar {
 
   readonly MenuIcon = MenuIcon;
 
+  @Output()
+  menuToggle = new EventEmitter<void>();
+
   private readonly windowManager = inject(WindowManager);
 
   time = toSignal(
@@ -67,13 +70,6 @@ export class Taskbar {
       icon: DESKTOP_APPS[w.appId].icon
     }));
   });
-
-  /**
-   * trigger when clicking menu button
-   */
-  openMenu(): void {
-
-  }
 
   restoreApp(app: TaskbarItem): void {
     this.windowManager.restore(app.instance.instanceId);

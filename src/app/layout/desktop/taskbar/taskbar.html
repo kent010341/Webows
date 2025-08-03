@@ -3,7 +3,7 @@
   <!-- Launcher button -->
   <div
     class="flex items-center gap-2 px-2 py-1 rounded cursor-pointer hover:bg-[#404040] active:bg-[#505050] transition-colors select-none"
-    (click)="openMenu()"
+    (click)="menuToggle.emit()"
   >
     <lucide-icon [img]="MenuIcon" class="w-4 h-4 text-white" />
     <span class="text-white">Menu</span>
