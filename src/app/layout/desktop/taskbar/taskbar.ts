@@ -26,7 +26,7 @@ import { Component, computed, EventEmitter, inject, Output, Signal } from '@angu
 import { DatePipe } from '@angular/common';
 import { DESKTOP_APPS } from '@webows/core/apps/desktop-app.data';
 import { interval, map, startWith } from 'rxjs';
-import { LucideAngularModule, LucideIconData, MenuIcon } from 'lucide-angular';
+import { GithubIcon, LucideAngularModule, LucideIconData, MenuIcon } from 'lucide-angular';
 import { TooltipModule } from 'primeng/tooltip';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { WindowManager } from '@webows/core/window/window-manager';
@@ -48,6 +48,7 @@ import { WindowInstance } from '@webows/core/apps/desktop-app.model';
 export class Taskbar {
 
   readonly MenuIcon = MenuIcon;
+  readonly GithubIcon = GithubIcon;
 
   @Output()
   menuToggle = new EventEmitter<void>();
@@ -73,6 +74,10 @@ export class Taskbar {
 
   restoreApp(app: TaskbarItem): void {
     this.windowManager.restore(app.instance.instanceId);
+  }
+
+  openGithub(): void {
+    window.open('https://github.com/kent010341/Webows', '_blank');
   }
 
 }
