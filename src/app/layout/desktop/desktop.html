@@ -4,7 +4,7 @@
   <div class="flex-1 relative">
     <div class="absolute top-6 left-6 flex flex-col gap-4">
       @for (app of apps; track app.id) {
-        <app-app-icon [icon]="app.icon" [label]="app.label" (open)="onLaunch(app.id)" />
+        <app-app-icon [icon]="app.icon" [label]="app.label" (open)="onLaunch(app)" />
       }
     </div>
   </div>

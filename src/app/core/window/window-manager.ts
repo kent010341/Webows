@@ -24,7 +24,7 @@
 
 import { computed, Injectable, signal } from '@angular/core';
 import { DesktopAppId } from '@webows/core/apps/desktop-app.enum';
-import { WindowInstance, WindowInstanceState } from '@webows/core/apps/desktop-app.model';
+import { DesktopAppMeta, WindowInstance, WindowInstanceState } from '@webows/core/apps/desktop-app.model';
 
 /**
  * Manages open desktop windows, including create and destroy.
@@ -61,15 +61,16 @@ export class WindowManager {
   private readonly windowOrder = signal<number[]>([]);
 
   /** Opens a new app window */
-  open(appId: DesktopAppId) {
+  open(appMeta: DesktopAppMeta) {
     const nextId = this.uniqueId++;
     
     this.windowMap.update(pre => {
       const next = new Map(pre);
 
       next.set(nextId, {
-        appId,
+        appId: appMeta.id,
         instanceId: nextId,
+        title: appMeta.label,
         position: { x: 200, y: 200 },
         zIndex: 0,  // temporary, will be recalculated
         state: WindowInstanceState.NORMAL,
@@ -124,6 +125,7 @@ export class WindowManager {
 
   restore(instanceId: number): void {
     this.update(instanceId, {state: WindowInstanceState.NORMAL});
+    this.moveToTop(instanceId);
   }
 
 }

@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-import { AfterViewInit, Component, computed, ElementRef, inject, Input, signal, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, computed, ElementRef, inject, Input, OnInit, signal, ViewChild } from '@angular/core';
 import { CopyIcon, LucideAngularModule, MinusIcon, SquareIcon, XIcon } from 'lucide-angular';
 import { filter, fromEvent, map, switchMap, takeUntil } from 'rxjs';
 import { WindowManager } from '@webows/core/window/window-manager';
@@ -43,7 +43,7 @@ import { NgClass, NgStyle } from '@angular/common';
   templateUrl: './window.html',
   styleUrl: './window.scss'
 })
-export class Window implements AfterViewInit {
+export class Window implements OnInit, AfterViewInit {
 
   readonly MinusIcon = MinusIcon;
   readonly XIcon = XIcon;
@@ -124,6 +124,10 @@ export class Window implements AfterViewInit {
       }
   });
 
+  ngOnInit(): void {
+    this._appTitle.set(this.windowInstance()!.title);
+  }
+
   /**
    * Initialize RxJS streams for mouse-based dragging.
    * Streams are composed as: mousedown → mousemove* → mouseup.
@@ -183,11 +187,13 @@ export class Window implements AfterViewInit {
    */
   maximizeOrRestore(): void {
     if (!this.isMaximized()) {
+      // maximize
       this.cachedSize = this.size();
       this.cachedPos = this.position();
       this.applyPosition({x: 0, y: 0});
       this.windowManager.maximize(this.windowInstance()!.instanceId);
     } else {
+      // restore
       this.applyPosition(this.cachedPos);
       this.applySize(this.cachedSize);
       this.windowManager.restore(this.windowInstance()!.instanceId);

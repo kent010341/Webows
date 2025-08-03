@@ -29,6 +29,7 @@ import { DesktopAppId } from '@webows/core/apps/desktop-app.enum';
 import { Taskbar } from '@webows/layout/desktop/taskbar/taskbar';
 import { WindowManager } from '@webows/core/window/window-manager';
 import { Notepad } from '@webows/features/notepad/notepad';
+import { DesktopAppMeta } from '@webows/core/apps/desktop-app.model';
 
 /**
  * This component represents the main desktop environment.
@@ -55,7 +56,7 @@ export class Desktop {
   readonly apps = Object.values(DESKTOP_APPS);
   readonly windows = this.windowManager.windows;
 
-  onLaunch(id: DesktopAppId): void {
+  onLaunch(id: DesktopAppMeta): void {
     this.windowManager.open(id);
   }
 
