@@ -46,6 +46,8 @@ export interface WindowInstance {
   instanceId: number;
 
   position: WindowPosition;
+  
+  zIndex: number;
 
 }
 

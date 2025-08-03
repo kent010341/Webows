@@ -11,7 +11,9 @@
 
   <!-- Open windows -->
   @for (win of windows(); track win.instanceId) {
-    <div class="absolute" [style.left.px]="win.position.x" [style.top.px]="win.position.y">
+    <div class="absolute" [style.left.px]="win.position.x" [style.top.px]="win.position.y"
+      [style.z-index]="win.zIndex"
+    >
       @switch (win.appId) {
         @case (DesktopAppId.Notepad) {
           <app-notepad [instanceId]="win.instanceId"></app-notepad>

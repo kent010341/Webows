@@ -36,21 +36,49 @@ export class WindowManager {
 
   private uniqueId = 0;
 
+  private readonly BASE_Z_INDEX = 10000;
+
   private readonly windowMap = signal<Map<number, WindowInstance>>(new Map<number, WindowInstance>());
-  readonly windows = computed(() => [...this.windowMap().values()]);
+  readonly windows = computed(() => {
+    const map = this.windowMap();
+    const order = this.windowOrder();
+    const total = order.length;
+
+    return order.map((id, index) => {
+      const win = map.get(id);
+      if (!win) {
+        return null;
+      }
+
+      return {
+        ...win,
+        zIndex: this.BASE_Z_INDEX + (total - index - 1)
+      };
+    }).filter(w => w != null);
+  });
+
+  /** Tracks window stacking order, most recent first */
+  private readonly windowOrder = signal<number[]>([]);
 
   /** Opens a new app window */
   open(appId: DesktopAppId) {
+    const nextId = this.uniqueId++;
+    
     this.windowMap.update(pre => {
       const next = new Map(pre);
-      const nextId = this.uniqueId++;
 
       next.set(nextId, {
         appId,
         instanceId: nextId,
-        position: { x: 20, y: 20 }
+        position: { x: 20, y: 20 },
+        zIndex: 0  // temporary, will be recalculated
       });
 
+      return next;
+    });
+
+    this.windowOrder.update(prev => {
+      const next = [nextId, ...prev];
       return next;
     });
   }
@@ -79,5 +107,10 @@ export class WindowManager {
       return next;
     });
   }
-  
+
+  /** Brings a window to the top of stacking order */
+  moveToTop(instanceId: number): void {
+    this.windowOrder.update(prev => [instanceId, ...prev.filter(id => id !== instanceId)]);
+  }
+
 }

@@ -109,6 +109,11 @@ export class Window implements AfterViewInit {
     });
   }
 
+  moveToTop(event: Event): void {
+    event.stopPropagation();
+    this.windowManager.moveToTop(this.instanceId);
+  }
+
   minimize(): void {
 
   }
