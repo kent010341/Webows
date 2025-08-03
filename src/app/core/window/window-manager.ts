@@ -24,7 +24,7 @@
 
 import { computed, Injectable, signal } from '@angular/core';
 import { DesktopAppId } from '@webows/core/apps/desktop-app.enum';
-import { WindowInstance } from '@webows/core/apps/desktop-app.model';
+import { DesktopAppMeta, WindowInstance, WindowInstanceState } from '@webows/core/apps/desktop-app.model';
 
 /**
  * Manages open desktop windows, including create and destroy.
@@ -36,21 +36,55 @@ export class WindowManager {
 
   private uniqueId = 0;
 
+  private readonly BASE_Z_INDEX = 10000;
+
   private readonly windowMap = signal<Map<number, WindowInstance>>(new Map<number, WindowInstance>());
-  readonly windows = computed(() => [...this.windowMap().values()]);
+  readonly windows = computed(() => {
+    const map = this.windowMap();
+    const order = this.windowOrder();
+    const total = order.length;
+
+    return order.map((id, index) => {
+      const win = map.get(id);
+      if (!win) {
+        return null;
+      }
+
+      return {
+        ...win,
+        zIndex: this.BASE_Z_INDEX + (total - index - 1)
+      };
+    }).filter(w => w != null);
+  });
+
+  readonly windowsSorted = computed(() => [...this.windows()]
+    .sort((a, b) => a.instanceId - b.instanceId)
+  );
+
+  /** Tracks window stacking order, most recent first */
+  private readonly windowOrder = signal<number[]>([]);
 
   /** Opens a new app window */
-  open(appId: DesktopAppId) {
+  open(appMeta: DesktopAppMeta) {
+    const nextId = this.uniqueId++;
+    
     this.windowMap.update(pre => {
       const next = new Map(pre);
-      const nextId = this.uniqueId++;
 
       next.set(nextId, {
-        appId,
+        appId: appMeta.id,
         instanceId: nextId,
-        position: { x: 20, y: 20 }
+        title: appMeta.label,
+        position: { x: 200, y: 200 },
+        zIndex: 0,  // temporary, will be recalculated
+        state: WindowInstanceState.NORMAL,
       });
 
+      return next;
+    });
+
+    this.windowOrder.update(prev => {
+      const next = [nextId, ...prev];
       return next;
     });
   }
@@ -79,5 +113,29 @@ export class WindowManager {
       return next;
     });
   }
-  
+
+  /** Brings a window to the top of stacking order */
+  moveToTop(instanceId: number): void {
+    this.windowOrder.update(prev => {
+      if (prev[0] === instanceId) {
+        return prev;
+      }
+
+      return [instanceId, ...prev.filter(id => id !== instanceId)];
+    });
+  }
+
+  minimize(instanceId: number): void {
+    this.update(instanceId, {state: WindowInstanceState.MINIMIZED});
+  }
+
+  maximize(instanceId: number): void {
+    this.update(instanceId, {state: WindowInstanceState.MAXIMIZED});
+  }
+
+  restore(instanceId: number): void {
+    this.update(instanceId, {state: WindowInstanceState.NORMAL});
+    this.moveToTop(instanceId);
+  }
+
 }

@@ -11,11 +11,12 @@
 
   <!-- Open App buttons -->
   <div class="flex items-start flex-1 gap-1 ml-4 h-full">
-    @for (app of openApps(); track app.id) {
+    @for (app of openApps(); track app.instance.instanceId) {
       <div
         class="h-full flex items-center gap-2 px-3 cursor-pointer rounded hover:bg-[#404040] active:bg-[#505050] transition-colors select-none"
-        [pTooltip]="app.label"
+        [pTooltip]="app.instance.title"
         tooltipPosition="top"
+        (click)="restoreApp(app)"
       >
         <lucide-icon [img]="app.icon" class="w-4 h-4 text-white" />
       </div>

@@ -22,14 +22,15 @@
  * SOFTWARE.
  */
 
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, Signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { DESKTOP_APPS } from '@webows/core/apps/desktop-app.data';
 import { interval, map, startWith } from 'rxjs';
-import { LucideAngularModule, MenuIcon } from 'lucide-angular';
+import { LucideAngularModule, LucideIconData, MenuIcon } from 'lucide-angular';
 import { TooltipModule } from 'primeng/tooltip';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { WindowManager } from '@webows/core/window/window-manager';
+import { WindowInstance } from '@webows/core/apps/desktop-app.model';
 
 /**
  * Taskbar with start button, apps and time placeholder.
@@ -60,11 +61,11 @@ export class Taskbar {
   /**
    * Distinct apps that currently have any instance open
    */
-  readonly openApps = computed(() => {
-    const open = this.windowManager.windows();
-    const idSet = new Set(open.map(o => o.appId));
-
-    return [...idSet].map(id => DESKTOP_APPS[id]);
+  readonly openApps: Signal<TaskbarItem[]> = computed(() => {
+    return this.windowManager.windowsSorted().map(w => ({
+      instance: w,
+      icon: DESKTOP_APPS[w.appId].icon
+    }));
   });
 
   /**
@@ -73,5 +74,17 @@ export class Taskbar {
   openMenu(): void {
 
   }
+
+  restoreApp(app: TaskbarItem): void {
+    this.windowManager.restore(app.instance.instanceId);
+  }
+
+}
+
+interface TaskbarItem {
+
+  instance: WindowInstance;
+
+  icon: LucideIconData;
 
 }

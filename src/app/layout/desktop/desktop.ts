@@ -23,12 +23,13 @@
  */
 
 import { AppIcon } from '@webows/components/app-icon/app-icon';
-import { Component, inject, Injector } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { DESKTOP_APPS } from '@webows/core/apps/desktop-app.data';
 import { DesktopAppId } from '@webows/core/apps/desktop-app.enum';
 import { Taskbar } from '@webows/layout/desktop/taskbar/taskbar';
 import { WindowManager } from '@webows/core/window/window-manager';
 import { Notepad } from '@webows/features/notepad/notepad';
+import { DesktopAppMeta } from '@webows/core/apps/desktop-app.model';
 
 /**
  * This component represents the main desktop environment.
@@ -51,13 +52,11 @@ export class Desktop {
   readonly DESKTOP_APPS = DESKTOP_APPS;
 
   private readonly windowManager = inject(WindowManager);
-  private readonly injector = inject(Injector);
 
   readonly apps = Object.values(DESKTOP_APPS);
   readonly windows = this.windowManager.windows;
 
-
-  onLaunch(id: DesktopAppId): void {
+  onLaunch(id: DesktopAppMeta): void {
     this.windowManager.open(id);
   }
 

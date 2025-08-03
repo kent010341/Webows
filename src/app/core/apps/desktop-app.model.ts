@@ -45,7 +45,13 @@ export interface WindowInstance {
   
   instanceId: number;
 
+  title: string;
+
   position: WindowPosition;
+  
+  zIndex: number;
+
+  state: WindowInstanceState;
 
 }
 
@@ -68,5 +74,21 @@ export interface WindowSize {
   width: number;
 
   height: number;
+
+}
+
+/**
+ * Window visual state:
+ * - NORMAL: freely movable/resizable
+ * - MAXIMIZED: fills screen (except taskbar)
+ * - MINIMIZED: hidden from view
+ */
+export enum WindowInstanceState {
+
+  MAXIMIZED = 'MAXIMIZED',
+
+  MINIMIZED = 'MINIMIZED',
+
+  NORMAL = 'NORMAL',
 
 }
