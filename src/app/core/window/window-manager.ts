@@ -22,8 +22,9 @@
  * SOFTWARE.
  */
 
-import { Injectable, signal } from '@angular/core';
-import { DesktopAppId } from '../apps/desktop-app.enum';
+import { computed, Injectable, signal } from '@angular/core';
+import { DesktopAppId } from '@webows/core/apps/desktop-app.enum';
+import { WindowInstance } from '@webows/core/apps/desktop-app.model';
 
 /**
  * Manages open desktop windows, including create and destroy.
@@ -35,25 +36,48 @@ export class WindowManager {
 
   private uniqueId = 0;
 
-  private readonly _windows = signal<WindowInstance[]>([]);
-  readonly windows = this._windows.asReadonly();
+  private readonly windowMap = signal<Map<number, WindowInstance>>(new Map<number, WindowInstance>());
+  readonly windows = computed(() => [...this.windowMap().values()]);
 
   /** Opens a new app window */
   open(appId: DesktopAppId) {
-    this._windows.update((w) => [...w, { appId, instanceId: this.uniqueId++ }]);
+    this.windowMap.update(pre => {
+      const next = new Map(pre);
+      const nextId = this.uniqueId++;
+
+      next.set(nextId, {
+        appId,
+        instanceId: nextId,
+        position: { x: 20, y: 20 }
+      });
+
+      return next;
+    });
   }
 
   /** Closes a window by its instance id */
   close(instanceId: number) {
-    this._windows.update((w) => w.filter((win) => win.instanceId !== instanceId));
+    this.windowMap.update(pre => {
+      const next = new Map(pre);
+      next.delete(instanceId);
+
+      return next;
+    });
+  }
+
+  /** Update the specified window */
+  update(instanceId: number, patch: Partial<WindowInstance>): void {
+    this.windowMap.update(pre => {
+      const curr = pre.get(instanceId);
+      if (!curr) {
+        return pre;
+      }
+
+      const next = new Map(pre);
+      next.set(instanceId, { ...curr, ...patch });
+
+      return next;
+    });
   }
   
-}
-
-/** Data of an opening window */
-export interface WindowInstance {
-
-  instanceId: number;
-  appId: DesktopAppId;
-
 }

@@ -22,9 +22,11 @@
  * SOFTWARE.
  */
 
-import { Component, computed, inject, Input, signal } from '@angular/core';
-import { WindowManager } from '@webows/core/window/window-manager';
+import { AfterViewInit, Component, computed, ElementRef, inject, Input, signal, ViewChild } from '@angular/core';
 import { CopyIcon, LucideAngularModule, MinusIcon, SquareIcon, XIcon } from 'lucide-angular';
+import { fromEvent, map, switchMap, takeUntil } from 'rxjs';
+import { WindowManager } from '@webows/core/window/window-manager';
+import { WindowSize } from '@webows/core/apps/desktop-app.model';
 
 @Component({
   selector: 'app-window',
@@ -34,26 +36,78 @@ import { CopyIcon, LucideAngularModule, MinusIcon, SquareIcon, XIcon } from 'luc
   templateUrl: './window.html',
   styleUrl: './window.scss'
 })
-export class Window {
+export class Window implements AfterViewInit {
 
   readonly MinusIcon = MinusIcon;
   readonly XIcon = XIcon;
 
-  @Input({required: true})
+  /** Title setter. Internally stored as a signal for reactive binding */
+  @Input({ required: true })
   set title(t: string) {
     this._appTitle.set(t);
   }
 
-  @Input({required: true})
+  /** The unique identifier for this window instance */
+  @Input({ required: true })
   instanceId!: number;
 
+  @ViewChild('window')
+  private readonly windowEl!: ElementRef<HTMLDivElement>;
+
+  /** Element reference for the window's title (used as drag handle) */
+  @ViewChild('title', {static: true})
+  private readonly titleEl!: ElementRef<HTMLDivElement>;
+
   private readonly windowManager = inject(WindowManager);
+
+  /** Root container element of the window */
+  private readonly el: ElementRef<HTMLDivElement> = inject(ElementRef);
 
   private readonly _appTitle = signal<string>('');
   readonly appTitle = this._appTitle.asReadonly();
 
   private readonly isMaximized = signal<boolean>(false);
   readonly maxOrRestoreIcon = computed(() => this.isMaximized() ? CopyIcon : SquareIcon);
+
+  private readonly size = signal<WindowSize>({ width: -1, height: -1 });
+  readonly width = computed(() => this.size().width);
+  readonly height = computed(() => this.size().height);
+
+  /**
+   * Initialize RxJS streams for mouse-based dragging.
+   * Streams are composed as: mousedown → mousemove* → mouseup.
+   * This eliminates the need for isDragging flag and guarantees proper teardown.
+   */
+  ngAfterViewInit(): void {
+    const mouseDown$ = fromEvent<MouseEvent>(this.titleEl.nativeElement, 'mousedown');
+    const mouseMove$ = fromEvent<MouseEvent>(document, 'mousemove');
+    const mouseUp$ = fromEvent<MouseEvent>(document, 'mouseup');
+
+    mouseDown$.pipe(
+      switchMap((startEvent) => {
+        const rect = this.el.nativeElement.getBoundingClientRect();
+
+        // Calculate the offset between the mouse position and the top-left corner of the window.
+        const offset = {
+          x: startEvent.clientX - rect.left,
+          y: startEvent.clientY - rect.top,
+        };
+
+        return mouseMove$.pipe(
+          map(moveEvent => ({
+            x: moveEvent.clientX - offset.x,
+            y: moveEvent.clientY - offset.y,
+          })),
+          // Ends the drag stream when mouse is released
+          takeUntil(mouseUp$)
+        );
+      }),
+    ).subscribe(position => {
+      this.windowManager.update(this.instanceId, {
+        position,
+      });
+    });
+  }
 
   minimize(): void {
 
@@ -67,4 +121,58 @@ export class Window {
     this.windowManager.close(this.instanceId);
   }
 
+  onResizeStart(event: MouseEvent, direction: ResizeDirection) {
+    const startX = event.clientX;
+    const startY = event.clientY;
+
+    // elRect is used for accurate position (x, y) tracking.
+    // This refers to the outer root container which retains correct DOM position.
+    const elRect = this.el.nativeElement.getBoundingClientRect();
+
+    // windowRect is used for accurate size (width, height) tracking.
+    // This refers to the inner resizable container which reflects the actual content size.
+    const windowRect = this.windowEl.nativeElement.getBoundingClientRect();
+
+    const mouseMove$ = fromEvent<MouseEvent>(document, 'mousemove');
+    const mouseUp$ = fromEvent<MouseEvent>(document, 'mouseup');
+
+    mouseMove$.pipe(
+      takeUntil(mouseUp$),
+      map(move => {
+        const dx = move.clientX - startX;
+        const dy = move.clientY - startY;
+
+        let width = windowRect.width;
+        let height = windowRect.height;
+        let x = elRect.left;
+        let y = elRect.top;
+
+        // Adjust based on direction
+        if (direction.includes('e')) {
+          width += dx;
+        }
+        if (direction.includes('s')) {
+          height += dy;
+        }
+        if (direction.includes('w')) {
+          width -= dx;
+          x += dx;
+        }
+        if (direction.includes('n')) {
+          height -= dy;
+          y += dy;
+        }
+
+        return { width, height, x, y };
+      })
+    ).subscribe(({ width, height, x, y }) => {
+      this.windowManager.update(this.instanceId, {
+        position: { x, y },
+      });
+      this.size.set({width, height});
+    });
+  }
+
 }
+
+type ResizeDirection = 'n' | 's' | 'e' | 'w' | 'ne' | 'nw' | 'se' | 'sw';

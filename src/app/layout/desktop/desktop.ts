@@ -24,11 +24,11 @@
 
 import { AppIcon } from '@webows/components/app-icon/app-icon';
 import { Component, inject, Injector } from '@angular/core';
-import { DESKTOP_APPS, WINDOW_INSTANCE_ID } from '@webows/core/apps/desktop-app.data';
-import { Taskbar } from '@webows/layout/desktop/taskbar/taskbar';
-import { WindowInstance, WindowManager } from '@webows/core/window/window-manager';
+import { DESKTOP_APPS } from '@webows/core/apps/desktop-app.data';
 import { DesktopAppId } from '@webows/core/apps/desktop-app.enum';
-import { NgComponentOutlet } from '@angular/common';
+import { Taskbar } from '@webows/layout/desktop/taskbar/taskbar';
+import { WindowManager } from '@webows/core/window/window-manager';
+import { Notepad } from '@webows/features/notepad/notepad';
 
 /**
  * This component represents the main desktop environment.
@@ -40,7 +40,7 @@ import { NgComponentOutlet } from '@angular/common';
   imports: [
     AppIcon,
     Taskbar,
-    NgComponentOutlet
+    Notepad,
   ],
   templateUrl: './desktop.html',
   styleUrl: './desktop.scss'
@@ -60,15 +60,5 @@ export class Desktop {
   onLaunch(id: DesktopAppId): void {
     this.windowManager.open(id);
   }
-
-  createInjector(instance: WindowInstance): Injector {
-  return Injector.create({
-    providers: [
-      { provide: WINDOW_INSTANCE_ID, useValue: instance.instanceId },
-    ],
-    parent: this.injector,
-  });
-}
-
 
 }
