@@ -62,7 +62,7 @@ export class Taskbar {
    * Distinct apps that currently have any instance open
    */
   readonly openApps: Signal<TaskbarItem[]> = computed(() => {
-    return this.windowManager.windows().map(w => ({
+    return this.windowManager.windowsSorted().map(w => ({
       instance: w,
       icon: DESKTOP_APPS[w.appId].icon
     }));

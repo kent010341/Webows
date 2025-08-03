@@ -57,6 +57,10 @@ export class WindowManager {
     }).filter(w => w != null);
   });
 
+  readonly windowsSorted = computed(() => [...this.windows()]
+    .sort((a, b) => a.instanceId - b.instanceId)
+  );
+
   /** Tracks window stacking order, most recent first */
   private readonly windowOrder = signal<number[]>([]);
 
@@ -112,7 +116,13 @@ export class WindowManager {
 
   /** Brings a window to the top of stacking order */
   moveToTop(instanceId: number): void {
-    this.windowOrder.update(prev => [instanceId, ...prev.filter(id => id !== instanceId)]);
+    this.windowOrder.update(prev => {
+      if (prev[0] === instanceId) {
+        return prev;
+      }
+
+      return [instanceId, ...prev.filter(id => id !== instanceId)];
+    });
   }
 
   minimize(instanceId: number): void {
