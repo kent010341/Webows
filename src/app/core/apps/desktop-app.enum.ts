@@ -24,5 +24,6 @@
 
 export enum DesktopAppId {
   Notepad = 'notepad',
+  WorkdayCalculator = 'WorkdayCalculator',
   // Add future apps here
 }

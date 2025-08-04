@@ -24,9 +24,9 @@
 
 import { DesktopAppId } from './desktop-app.enum';
 import { DesktopAppMeta } from './desktop-app.model';
-import { InjectionToken } from '@angular/core';
 import { Notepad } from '@webows/features/notepad/notepad';
-import { StickyNoteIcon } from 'lucide-angular';
+import { StickyNoteIcon, TimerIcon } from 'lucide-angular';
+import { WorkdayCalculator } from '@webows/features/workday-calculator/workday-calculator';
 
 export const DESKTOP_APPS: Record<DesktopAppId, DesktopAppMeta> = {
   [DesktopAppId.Notepad]: {
@@ -34,5 +34,11 @@ export const DESKTOP_APPS: Record<DesktopAppId, DesktopAppMeta> = {
     icon: StickyNoteIcon,
     label: 'Notepad',
     component: Notepad,
+  },
+  [DesktopAppId.WorkdayCalculator]: {
+    id: DesktopAppId.WorkdayCalculator,
+    icon: TimerIcon,
+    label: 'Workday Calculator',
+    component: WorkdayCalculator,
   },
 };
