@@ -24,10 +24,11 @@
 
 import { Component, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { Konami } from './shared/directive/konami';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
+  imports: [RouterOutlet, Konami],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })
