@@ -22,21 +22,32 @@
  * SOFTWARE.
  */
 
-import { Component } from '@angular/core';
-import { Window } from '@webows/components/window/window';
-import { WindowAppBase } from '@webows/core/window/window-app.base';
+import { inject, computed, Signal, Directive, Input } from '@angular/core';
+import { WindowManager } from '@webows/core/window/window-manager';
+import { WindowInstance } from '@webows/core/apps/desktop-app.model';
 
 /**
- * Simple notepad app with static textarea.
+ * Base class for desktop apps running inside windows.
+ * Provides shared access to window instance, focus state, and utilities.
  */
-@Component({
-  selector: 'app-notepad',
-  imports: [
-    Window,
-  ],
-  templateUrl: './notepad.html',
-  styleUrl: './notepad.scss'
-})
-export class Notepad extends WindowAppBase {
+@Directive()
+export abstract class WindowAppBase {
 
+  /**
+   * The instance of this window.
+   */
+  @Input({ required: true })
+  instance!: WindowInstance;
+
+  /**
+   * Reference to the WindowManager service.
+   */
+  protected readonly windowManager = inject(WindowManager);
+
+  /**
+   * Indicating whether this app currently has focus.
+   */
+  readonly isFocused: Signal<boolean> = computed(() =>
+    this.windowManager.focusedId() === this.instance.instanceId
+  );
 }
