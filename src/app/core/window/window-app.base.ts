@@ -22,8 +22,32 @@
  * SOFTWARE.
  */
 
-export enum DesktopAppId {
-  Notepad = 'notepad',
-  WorkdayCalculator = 'WorkdayCalculator',
-  // Add future apps here
+import { inject, computed, Signal, Directive, Input } from '@angular/core';
+import { WindowManager } from '@webows/core/window/window-manager';
+import { WindowInstance } from '@webows/core/apps/desktop-app.model';
+
+/**
+ * Base class for desktop apps running inside windows.
+ * Provides shared access to window instance, focus state, and utilities.
+ */
+@Directive()
+export abstract class WindowAppBase {
+
+  /**
+   * The instance of this window.
+   */
+  @Input({ required: true })
+  instance!: WindowInstance;
+
+  /**
+   * Reference to the WindowManager service.
+   */
+  protected readonly windowManager = inject(WindowManager);
+
+  /**
+   * Indicating whether this app currently has focus.
+   */
+  readonly isFocused: Signal<boolean> = computed(() =>
+    this.windowManager.focusedId() === this.instance.instanceId
+  );
 }

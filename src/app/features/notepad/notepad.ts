@@ -22,9 +22,9 @@
  * SOFTWARE.
  */
 
-import { Component, Input, signal } from '@angular/core';
+import { Component } from '@angular/core';
 import { Window } from '@webows/components/window/window';
-import { WindowInstance } from '@webows/core/apps/desktop-app.model';
+import { WindowAppBase } from '@webows/core/window/window-app.base';
 
 /**
  * Simple notepad app with static textarea.
@@ -37,12 +37,6 @@ import { WindowInstance } from '@webows/core/apps/desktop-app.model';
   templateUrl: './notepad.html',
   styleUrl: './notepad.scss'
 })
-export class Notepad {
-
-  @Input({required: true})
-  instance!: WindowInstance;
-
-  private readonly _appTitle = signal<string>('Notepad');
-  readonly appTitle = this._appTitle.asReadonly();
+export class Notepad extends WindowAppBase {
 
 }

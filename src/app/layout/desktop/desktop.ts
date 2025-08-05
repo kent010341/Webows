@@ -22,16 +22,17 @@
  * SOFTWARE.
  */
 
+import { ActivatedRoute } from '@angular/router';
 import { AppIcon } from '@webows/components/app-icon/app-icon';
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { DESKTOP_APPS } from '@webows/core/apps/desktop-app.data';
 import { DesktopAppId } from '@webows/core/apps/desktop-app.enum';
-import { Taskbar } from '@webows/layout/desktop/taskbar/taskbar';
-import { WindowManager } from '@webows/core/window/window-manager';
-import { Notepad } from '@webows/features/notepad/notepad';
 import { DesktopAppMeta } from '@webows/core/apps/desktop-app.model';
 import { Menu } from '@webows/layout/desktop/menu/menu';
-import { ActivatedRoute } from '@angular/router';
+import { Notepad } from '@webows/features/notepad/notepad';
+import { Taskbar } from '@webows/layout/desktop/taskbar/taskbar';
+import { WindowManager } from '@webows/core/window/window-manager';
+import { WorkdayCalculator } from '@webows/features/workday-calculator/workday-calculator';
 
 /**
  * This component represents the main desktop environment.
@@ -45,6 +46,7 @@ import { ActivatedRoute } from '@angular/router';
     Menu,
     Notepad,
     Taskbar,
+    WorkdayCalculator,
   ],
   templateUrl: './desktop.html',
   styleUrl: './desktop.scss'

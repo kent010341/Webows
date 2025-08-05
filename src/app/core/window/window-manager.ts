@@ -64,6 +64,9 @@ export class WindowManager {
   /** Tracks window stacking order, most recent first */
   private readonly windowOrder = signal<number[]>([]);
 
+  /** Instance id of the focus window */
+  readonly focusedId = computed(() =>　this.windowOrder()[0]);
+
   /** Opens a new app window */
   open(appMeta: DesktopAppMeta) {
     const nextId = this.uniqueId++;

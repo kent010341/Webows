@@ -48,12 +48,6 @@ export class Window implements OnInit, AfterViewInit {
   readonly MinusIcon = MinusIcon;
   readonly XIcon = XIcon;
 
-  /** Title setter. Internally stored as a signal for reactive binding */
-  @Input({ required: true })
-  set title(t: string) {
-    this._appTitle.set(t);
-  }
-
   /** The window instance */
   @Input({ required: true })
   set instance(inst: WindowInstance) {
