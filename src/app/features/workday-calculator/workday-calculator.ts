@@ -24,7 +24,20 @@
 
 import { Component, computed, HostListener, signal } from '@angular/core';
 import { Window } from '@webows/components/window/window';
-import { CALCULATOR_KEY_DISLPAY, CALCULATOR_KEYS, CalculatorKeyInput, GENERAL_KEY_INPUT, FUNC_KEY_INPUT, OPERATOR_KEY_INPUT, parseTimeToMinutes, ResultData, calculateNumberWithNumber, calculateNumberWithWorkday, calculateWorkdayWithNumber, calculateWorkdayWithWorkday } from '@webows/features/workday-calculator/workday-calculator.metadata';
+import {
+  calculateNumberWithNumber,
+  calculateNumberWithWorkday,
+  calculateWorkdayWithNumber,
+  calculateWorkdayWithWorkday,
+  CALCULATOR_KEY_DISLPAY,
+  CALCULATOR_KEYS,
+  CalculatorKeyInput,
+  FUNC_KEY_INPUT,
+  GENERAL_KEY_INPUT,
+  OPERATOR_KEY_INPUT,
+  parseTimeToMinutes,
+  ResultData,
+} from '@webows/features/workday-calculator/workday-calculator.metadata';
 import { NgClass } from '@angular/common';
 import { LucideAngularModule } from 'lucide-angular';
 import { WindowAppBase } from '@webows/core/window/window-app.base';
@@ -50,9 +63,11 @@ export class WorkdayCalculator extends WindowAppBase {
 
   readonly history = signal<string>('');
   readonly input = signal('0');
-  private readonly result = signal<ResultData>({ dataType: 'number', value: 0 });
 
-  readonly display = computed(() => this.input() || this.result());
+  private readonly _result = signal<ResultData>({ dataType: 'number', value: 0 });
+  readonly result = this._result.asReadonly();
+
+  readonly display = computed(() => this.input() || this._result());
 
   readonly isInputEmpty = computed(() => this.input() === '0');
 
@@ -70,9 +85,8 @@ export class WorkdayCalculator extends WindowAppBase {
     const key = event.key as CalculatorKeyInput;
     if (Object.values(CalculatorKeyInput).includes(key)) {
       this.applyInput(key);
+      event.preventDefault();
     }
-
-    event.preventDefault();
   }
 
   press(key: CalculatorKeyInput): void {
@@ -106,7 +120,7 @@ export class WorkdayCalculator extends WindowAppBase {
   }
 
   private clearAll(): void {
-    this.result.set({ dataType: 'number', value: 0 });
+    this._result.set({ dataType: 'number', value: 0 });
     this.input.set('0');
     this.history.set('');
   }
@@ -131,7 +145,7 @@ export class WorkdayCalculator extends WindowAppBase {
    *   - number (result) {invalid unless Enter} workday (input)
    */
   private calculate(): void {
-    this.result.update(r => {
+    this._result.update(r => {
       const next = { ...r, error: undefined };
       const input = this.input();
       const operator = this.pendingOperator;

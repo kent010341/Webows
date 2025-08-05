@@ -1,7 +1,7 @@
 <app-window [instance]="instance">
-  <div class="flex flex-col h-[360px] w-[340px] text-white text-sm">
+  <div class="flex flex-col h-full w-full text-white text-sm">
     <!-- History display -->
-    <div class="flex-1 overflow-auto border-b border-[#444] p-2 text-xs">
+    <div class="h-10 overflow-auto border-b border-[#444] p-2 text-xs">
       @for (entry of history(); track entry) {
         <div class="whitespace-nowrap overflow-x-auto">
           {{ entry }}
@@ -14,8 +14,13 @@
       {{ display() || '0' }}
     </div>
 
+    <!-- error -->
+    <div class="h-5 px-2 flex items-center justify-end text-red-500 text-xs">
+      {{ result().error ?? '' }}
+    </div>
+
     <!-- Calculator key grid -->
-    <div class="grid grid-cols-4 gap-1 p-2 bg-[#1e1e1e] text-white text-sm select-none">
+    <div class="flex-1 grid grid-cols-4 gap-1 p-2 bg-[#1e1e1e] text-white text-lg select-none">
       @for (key of CALCULATOR_KEYS; track key) {
         <button
           class="py-3 rounded flex items-center justify-center"

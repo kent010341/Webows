@@ -22,7 +22,6 @@
  * SOFTWARE.
  */
 
-import { WritableSignal } from '@angular/core';
 import {
   DivideIcon,
   XIcon,
@@ -30,17 +29,6 @@ import {
   DeleteIcon,
   LucideIconData,
 } from 'lucide-angular';
-
-/**
- * @deprecated
- */
-export interface CalcKey {
-  key: string;
-  value: string;
-  label: string | LucideIconData;
-  kind: 'digit' | 'op' | 'func' | 'unit';
-  action?: (sig: WritableSignal<string>) => void;
-}
 
 export interface ResultData {
 
