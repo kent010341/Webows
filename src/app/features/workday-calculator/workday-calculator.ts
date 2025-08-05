@@ -67,7 +67,7 @@ export class WorkdayCalculator extends WindowAppBase {
     mode: InputMode.REPLACE,
     dataType: 'number',
     value: 0,
-    history: '',
+    history: '0',
     pendingOperator: CalculatorKeyInput.ENTER,
   };
 
@@ -121,12 +121,15 @@ export class WorkdayCalculator extends WindowAppBase {
   }
 
   private clearEntry(): void {
-    this.setInput('0');
+    this._inputMeta.update(m => ({
+      ...m,
+      input:'0',
+      mode: InputMode.REPLACE,
+    }));
   }
 
   private clearAll(): void {
     this._inputMeta.set(this.INIT_META);
-    this.setInput('0');
   }
 
   private backspace(): void {
@@ -140,10 +143,6 @@ export class WorkdayCalculator extends WindowAppBase {
       }
       return f.slice(0, -1);
     });
-  }
-
-  private setInput(input: string): void {
-    this._inputMeta.update(m => ({ ...m, input }));
   }
 
   private updateInput(patcher: (input: string) => string): void {
