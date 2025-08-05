@@ -32,6 +32,7 @@ import {
   CALCULATOR_KEY_DISLPAY as CALCULATOR_KEY_DISPLAY,
   CALCULATOR_KEYS,
   CalculatorKeyInput,
+  formatMinutesToTime,
   FUNC_KEY_INPUT,
   GENERAL_KEY_INPUT,
   generateHistory,
@@ -101,11 +102,36 @@ export class WorkdayCalculator extends WindowAppBase {
 
   private applyInput(key: CalculatorKeyInput): void {
     if (GENERAL_KEY_INPUT.has(key)) {
-      this.updateInput(f => this.inputMode() === InputMode.APPEND ? f + key : key);
-      this._inputMeta.update(m => ({
-        ...m,
-        mode: InputMode.APPEND
-      }));
+      this._inputMeta.update(m => {
+        // set input
+        let input;
+        let mode = InputMode.APPEND;
+        const isInputDot = key === CalculatorKeyInput.DOT;
+        if (m.mode === InputMode.REPLACE) {
+          // start with dot is invalid
+          if (isInputDot) {
+            input = m.input;
+            mode = InputMode.REPLACE;  // invalid start stays in REPLACE mode
+          } else {
+            input = key;
+          }
+        } else {
+          if ((m.input.endsWith('.') && isInputDot)) {
+            input = m.input;
+          } else if (m.input === '0' && !isInputDot) {
+            // aviod starting with 0, unless input dot
+            input = key;
+          } else {
+            input = m.input + key;
+          }
+        }
+
+        return {
+          ...m,
+          input,
+          mode,
+        };
+      });
     } else if (FUNC_KEY_INPUT.has(key)) {
       switch (key) {
         case CalculatorKeyInput.BACKSPACE:
@@ -140,16 +166,10 @@ export class WorkdayCalculator extends WindowAppBase {
       return;
     }
 
-    this.updateInput(f => {
-      if (f.length === 1) {
-        return '0';
-      }
-      return f.slice(0, -1);
-    });
-  }
-
-  private updateInput(patcher: (input: string) => string): void {
-    this._inputMeta.update(m => ({ ...m, input: patcher(m.input) }));
+    this._inputMeta.update(m => ({
+      ...m,
+      input: m.input.length === 1 ? '0' : m.input.slice(0, -1)
+    }));
   }
 
   /**
@@ -193,8 +213,8 @@ export class WorkdayCalculator extends WindowAppBase {
       
       // if the previous operator is ENTER, it means this is a new one
       if (preOp === CalculatorKeyInput.ENTER) {
-        const history = generateHistory(input, nextOp);
         if (isNum) {
+          const history = generateHistory(input, nextOp);
           return {
             input,
             mode: InputMode.REPLACE,
@@ -205,11 +225,13 @@ export class WorkdayCalculator extends WindowAppBase {
           };
         } else {
           try {
+            const value = parseTimeToMinutes(input);
+            const history = generateHistory(formatMinutesToTime(value), nextOp);
             return {
               input,
               mode: InputMode.REPLACE,
               dataType: 'workday',
-              value: parseTimeToMinutes(input),
+              value,
               history,
               pendingOperator: nextOp,
             };
