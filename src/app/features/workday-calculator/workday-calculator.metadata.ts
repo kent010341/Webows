@@ -76,10 +76,10 @@ export interface InputMeta {
 
 export enum CalculatorKeyInput {
   // unction keys
-  DELETE = 'Delete',
-  ESCAPE = 'Escape',
-  BACKSPACE = 'Backspace',
-  ENTER = 'Enter',
+  DELETE = 'delete',
+  ESCAPE = 'escape',
+  BACKSPACE = 'backspace',
+  ENTER = 'enter',
 
   // Operators
   DIVIDE = '/',
@@ -108,10 +108,10 @@ export enum CalculatorKeyInput {
 }
 
 // Function keys, which is effect on the input or result slot.
-export const FUNC_KEY_INPUT = new Set<string>(['Delete', 'Escape', 'Backspace']);
+export const FUNC_KEY_INPUT = new Set<string>(['delete', 'escape', 'backspace']);
 
 // operator keys, which cause a calculating process.
-export const OPERATOR_KEY_INPUT = new Set<string>(['+', '-', '*', '/', 'Enter']);
+export const OPERATOR_KEY_INPUT = new Set<string>(['+', '-', '*', '/', 'enter']);
 
 // Units, which is directly append to current input.
 export const UNIT_KEY_INPUT = new Set<string>(['w', 'd', 'h', 'm']);
@@ -125,11 +125,11 @@ export const GENERAL_KEY_INPUT = new Set<string>([
 ]);
 
 export const CALCULATOR_KEY_DISLPAY: Record<string, string | LucideIconData> = {
-  'Delete': 'CE',
-  'Escape': 'C',
-  'Backspace': DeleteIcon,
+  'delete': 'CE',
+  'escape': 'C',
+  'backspace': DeleteIcon,
   '/': DivideIcon,
-  'Enter': EqualIcon,
+  'enter': EqualIcon,
 
   '7': '7',
   '8': '8',
