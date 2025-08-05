@@ -117,6 +117,7 @@ export class WorkdayCalculator extends WindowAppBase {
           }
         } else {
           if ((m.input.endsWith('.') && isInputDot)) {
+            // avoid double dot
             input = m.input;
           } else if (m.input === '0' && !isInputDot) {
             // aviod starting with 0, unless input dot
