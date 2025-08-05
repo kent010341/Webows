@@ -1,24 +1,22 @@
 <app-window [instance]="instance">
   <div class="flex flex-col h-full w-full text-white text-sm">
-    <!-- History display -->
-    <div class="h-10 overflow-auto border-b border-[#444] p-2 text-xs">
-      @for (entry of history(); track entry) {
-        <div class="whitespace-nowrap overflow-x-auto">
-          {{ entry }}
-        </div>
-      }
-    </div>
-
-    <!-- Input result -->
-    <div class="h-12 bg-[#111] border-b border-[#444] px-2 flex items-center justify-end font-mono text-base">
-      {{ inputMeta().input || '0' }}
-    </div>
-
-    <!-- error -->
-    <div class="h-5 px-2 flex items-center justify-end text-red-500 text-xs">
-      {{ inputMeta().error ?? '' }}
-    </div>
-
+    @if (inputMeta(); as meta) {
+      <!-- History display -->
+      <div class="h-10 flex items-center justify-end overflow-auto border-b border-[#444] p-2 text-xs">
+        {{meta.history}}
+      </div>
+  
+      <!-- Input result -->
+      <div class="h-12 bg-[#111] border-b border-[#444] px-2 flex items-center justify-end font-mono text-base">
+        {{ inputMeta().input || '0' }}
+      </div>
+  
+      <!-- error -->
+      <div class="h-5 px-2 flex items-center justify-end text-red-500 text-xs">
+        {{ inputMeta().error ?? '' }}
+      </div>
+    }
+  
     <!-- Calculator key grid -->
     <div class="flex-1 grid grid-cols-4 gap-1 p-2 bg-[#1e1e1e] text-white text-lg select-none">
       @for (key of CALCULATOR_KEYS; track key) {

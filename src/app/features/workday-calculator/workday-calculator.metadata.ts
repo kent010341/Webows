@@ -66,6 +66,8 @@ export interface InputMeta {
    */
   value: number;
 
+  history: string;
+
   pendingOperator: CalculatorKeyInput;
 
   error?: string;
@@ -265,11 +267,12 @@ export function formatMinutesToTime(totalMinutes: number): string {
  * Fully supports all arithmetic operators.
  */
 export function calculateNumberWithNumber(
-  input: number,
   state: InputMeta,
   nextOp: CalculatorKeyInput
 ): InputMeta {
+  const input = Number(state.input);
   const preOp = state.pendingOperator;
+  
   if (preOp === CalculatorKeyInput.DIVIDE && input === 0) {
     return { ...state, error: 'Division by zero', mode: InputMode.APPEND };
   }
@@ -289,13 +292,17 @@ export function calculateNumberWithNumber(
       result /= input;
       break;
   }
+  
+  const resultStr = String(result);
+  const history = generateHistory(resultStr, nextOp);
 
   return {
     input: String(result),
+    mode: InputMode.REPLACE,
     dataType: 'number',
     value: result,
+    history,
     pendingOperator: nextOp,
-    mode: InputMode.REPLACE
   };
 }
 
@@ -304,28 +311,41 @@ export function calculateNumberWithNumber(
  * Only multiplication and division are allowed.
  */
 export function calculateNumberWithWorkday(
-  input: number,
   state: InputMeta,
   nextOp: CalculatorKeyInput
 ): InputMeta {
+  const input = Number(state.input);
   const preOp = state.pendingOperator;
+
   if (preOp === CalculatorKeyInput.PLUS || preOp === CalculatorKeyInput.MINUS) {
-    return { ...state, error: 'Operator not allowed', mode: InputMode.APPEND };
+    return {
+      ...state,
+      mode: InputMode.APPEND,
+      error: 'Operator not allowed',
+    };
   }
   if (preOp === CalculatorKeyInput.DIVIDE && input === 0) {
-    return { ...state, error: 'Division by zero', mode: InputMode.APPEND };
+    return {
+      ...state,
+      mode: InputMode.APPEND,
+      error: 'Division by zero',
+    };
   }
 
   const result = preOp === CalculatorKeyInput.TIMES
     ? state.value * input
     : state.value / input;
+  
+  const resultStr = formatMinutesToTime(result);
+  const history = generateHistory(resultStr, nextOp);
 
   return {
-    input: formatMinutesToTime(result),
+    input: resultStr,
+    mode: InputMode.REPLACE,
     dataType: 'workday',
     value: result,
+    history,
     pendingOperator: nextOp,
-    mode: InputMode.REPLACE
   };
 }
 
@@ -334,47 +354,55 @@ export function calculateNumberWithWorkday(
  * Supports only addition and subtraction.
  */
 export function calculateWorkdayWithWorkday(
-  input: string,
   state: InputMeta,
   nextOp: CalculatorKeyInput
 ): InputMeta {
+  const input = state.input;
   const preOp = state.pendingOperator;
-  try {
-    if (preOp !== CalculatorKeyInput.PLUS && preOp !== CalculatorKeyInput.MINUS) {
-      return {
-        ...state,
-        error: 'Operator not allowed',
-        mode: InputMode.APPEND
-      };
-    }
 
+  if (preOp !== CalculatorKeyInput.PLUS && preOp !== CalculatorKeyInput.MINUS) {
+    return {
+      ...state,
+      mode: InputMode.APPEND,
+      error: 'Operator not allowed',
+    };
+  }
+
+  try {
     const val = parseTimeToMinutes(input);
-    
+
     switch (preOp) {
       case CalculatorKeyInput.PLUS:
         const r1 = state.value + val;
+        const s1 = formatMinutesToTime(r1);
+        const h1 = generateHistory(s1, nextOp);
+
         return {
-          input: formatMinutesToTime(r1),
+          input: s1,
+          mode: InputMode.REPLACE,
           dataType: 'workday',
           value: state.value + val,
           pendingOperator: nextOp,
-          mode: InputMode.REPLACE
+          history: h1,
         };
       case CalculatorKeyInput.MINUS:
         const r2 = state.value - val;
+        const s2 = formatMinutesToTime(r2);
+        const h2 = generateHistory(s2, nextOp);
         return {
-          input: formatMinutesToTime(r2),
+          input: s2,
+          mode: InputMode.REPLACE,
           dataType: 'workday',
           value: r2,
+          history: h2,
           pendingOperator: nextOp,
-          mode: InputMode.REPLACE
         };
     }
   } catch (e) {
     return {
       ...state,
+      mode: InputMode.APPEND,
       error: 'Invalid workday',
-      mode: InputMode.APPEND
     };
   }
 }
@@ -384,11 +412,12 @@ export function calculateWorkdayWithWorkday(
  * Only multiplication is allowed. All other operators are rejected.
  */
 export function calculateWorkdayWithNumber(
-  input: string,
   state: InputMeta,
   nextOp: CalculatorKeyInput
 ): InputMeta {
+  const input = state.input;
   const preOp = state.pendingOperator;
+
   if (preOp !== CalculatorKeyInput.TIMES) {
     return {
       ...state,
@@ -399,18 +428,29 @@ export function calculateWorkdayWithNumber(
   try {
     const val = parseTimeToMinutes(input);
     const result = state.value * val;
+    const resultStr = formatMinutesToTime(result);
+    const history = generateHistory(resultStr, nextOp);
+    
     return {
-      input: formatMinutesToTime(result),
+      input: resultStr,
+      mode: InputMode.REPLACE,
       dataType: 'workday',
       value: result,
+      history,
       pendingOperator: nextOp,
-      mode: InputMode.REPLACE
     };
   } catch (e) {
     return {
       ...state,
+      mode: InputMode.APPEND,
       error: 'Invalid workday',
-      mode: InputMode.APPEND
     };
   }
+}
+
+function generateHistory(resultStr: string, op: CalculatorKeyInput): string {
+  if (op === CalculatorKeyInput.ENTER) {
+    return `${resultStr}`;
+  }
+  return `${resultStr} ${op}`;
 }

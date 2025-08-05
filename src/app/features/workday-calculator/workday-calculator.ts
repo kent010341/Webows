@@ -62,15 +62,16 @@ export class WorkdayCalculator extends WindowAppBase {
   readonly CALCULATOR_KEYS = CALCULATOR_KEYS;
   readonly CALCULATOR_KEY_DISLPAY = CALCULATOR_KEY_DISLPAY;
 
-  readonly history = signal<string>('');
-
-  private readonly _inputMeta = signal<InputMeta>({
+  readonly INIT_META: InputMeta = {
     input: '0',
+    mode: InputMode.REPLACE,
     dataType: 'number',
     value: 0,
+    history: '',
     pendingOperator: CalculatorKeyInput.ENTER,
-    mode: InputMode.REPLACE
-  });
+  };
+
+  private readonly _inputMeta = signal<InputMeta>(this.INIT_META);
   readonly inputMeta = this._inputMeta.asReadonly();
 
   private readonly inputMode = computed(() => this.inputMeta().mode);
@@ -124,15 +125,8 @@ export class WorkdayCalculator extends WindowAppBase {
   }
 
   private clearAll(): void {
-    this._inputMeta.set({
-      input: '0',
-      dataType: 'number',
-      value: 0,
-      pendingOperator: CalculatorKeyInput.ENTER,
-      mode: InputMode.REPLACE
-    });
+    this._inputMeta.set(this.INIT_META);
     this.setInput('0');
-    this.history.set('');
   }
 
   private backspace(): void {
@@ -167,32 +161,57 @@ export class WorkdayCalculator extends WindowAppBase {
    *   - number (result) {invalid unless Enter} workday (input)
    */
   private calculate(nextOp: CalculatorKeyInput): void {
-    this._inputMeta.update(r => {
-      const next = { ...r, error: undefined };
-      const input = r.input;
-      const preOp = r.pendingOperator;
+    // press operator key in REPLACE mode is to replace current pending operator
+    if (this.inputMode() === InputMode.REPLACE) {
+      this._inputMeta.update(m => {
+        const next = {...m};
+
+        const preHistory = next.pendingOperator === CalculatorKeyInput.ENTER
+          ? next.history
+          : next.history.slice(0, -1);  // remove the previous operator
+
+        const nextHistory = nextOp === CalculatorKeyInput.ENTER
+          ? preHistory
+          : `${preHistory} ${nextOp}`;
+        
+        return {
+          ...next,
+          history: nextHistory,
+          pendingOperator: nextOp,
+        };
+      });
+      return;
+    }
+
+    this._inputMeta.update(m => {
+      const next = { ...m, error: undefined };
+      const input = m.input;
+      const preOp = m.pendingOperator;
 
       const numericValue = Number(input);
       const isNum = !isNaN(numericValue) && isFinite(numericValue);
       
       // if the previous operator is ENTER, it means this is a new one
       if (preOp === CalculatorKeyInput.ENTER) {
+        const history = `${input} ${nextOp}`;
         if (isNum) {
           return {
             input,
+            mode: InputMode.REPLACE,
             dataType: 'number',
             value: numericValue,
+            history,
             pendingOperator: nextOp,
-            mode: InputMode.REPLACE
           };
         } else {
           try {
             return {
               input,
+              mode: InputMode.REPLACE,
               dataType: 'workday',
               value: parseTimeToMinutes(input),
+              history,
               pendingOperator: nextOp,
-              mode: InputMode.REPLACE
             };
           } catch (e) {
             return {
@@ -205,16 +224,16 @@ export class WorkdayCalculator extends WindowAppBase {
       }
 
       if (isNum && next.dataType === 'number') {
-        return calculateNumberWithNumber(numericValue, next, nextOp);
+        return calculateNumberWithNumber(next, nextOp);
       }
       if (isNum && next.dataType === 'workday') {
-        return calculateNumberWithWorkday(numericValue, next, nextOp);
+        return calculateNumberWithWorkday(next, nextOp);
       }
       if (!isNum && next.dataType === 'workday') {
-        return calculateWorkdayWithWorkday(input, next, nextOp);
+        return calculateWorkdayWithWorkday(next, nextOp);
       }
       if (!isNum && next.dataType === 'number') {
-        return calculateWorkdayWithNumber(input, next, nextOp);
+        return calculateWorkdayWithNumber(next, nextOp);
       }
 
       return {
