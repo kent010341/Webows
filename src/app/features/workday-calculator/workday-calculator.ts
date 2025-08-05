@@ -89,7 +89,7 @@ export class WorkdayCalculator extends WindowAppBase {
       return;
     }
 
-    const key = event.key as CalculatorKeyInput;
+    const key = event.key.toLowerCase() as CalculatorKeyInput;
     if (Object.values(CalculatorKeyInput).includes(key)) {
       this.applyInput(key);
       event.preventDefault();
