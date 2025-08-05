@@ -448,7 +448,7 @@ export function calculateWorkdayWithNumber(
   }
 }
 
-function generateHistory(resultStr: string, op: CalculatorKeyInput): string {
+export function generateHistory(resultStr: string, op: CalculatorKeyInput): string {
   if (op === CalculatorKeyInput.ENTER) {
     return `${resultStr}`;
   }

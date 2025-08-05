@@ -34,6 +34,7 @@ import {
   CalculatorKeyInput,
   FUNC_KEY_INPUT,
   GENERAL_KEY_INPUT,
+  generateHistory,
   InputMeta,
   InputMode,
   OPERATOR_KEY_INPUT,
@@ -169,9 +170,7 @@ export class WorkdayCalculator extends WindowAppBase {
           ? next.history
           : next.history.slice(0, -1);  // remove the previous operator
 
-        const nextHistory = nextOp === CalculatorKeyInput.ENTER
-          ? preHistory
-          : `${preHistory} ${nextOp}`;
+        const nextHistory = generateHistory(preHistory, nextOp);
         
         return {
           ...next,
@@ -192,7 +191,7 @@ export class WorkdayCalculator extends WindowAppBase {
       
       // if the previous operator is ENTER, it means this is a new one
       if (preOp === CalculatorKeyInput.ENTER) {
-        const history = `${input} ${nextOp}`;
+        const history = generateHistory(input, nextOp);
         if (isNum) {
           return {
             input,
