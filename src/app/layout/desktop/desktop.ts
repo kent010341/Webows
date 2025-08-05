@@ -22,15 +22,16 @@
  * SOFTWARE.
  */
 
+import { ActivatedRoute } from '@angular/router';
 import { AppIcon } from '@webows/components/app-icon/app-icon';
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { DESKTOP_APPS } from '@webows/core/apps/desktop-app.data';
 import { DesktopAppId } from '@webows/core/apps/desktop-app.enum';
-import { Taskbar } from '@webows/layout/desktop/taskbar/taskbar';
-import { WindowManager } from '@webows/core/window/window-manager';
-import { Notepad } from '@webows/features/notepad/notepad';
 import { DesktopAppMeta } from '@webows/core/apps/desktop-app.model';
 import { Menu } from '@webows/layout/desktop/menu/menu';
+import { Notepad } from '@webows/features/notepad/notepad';
+import { Taskbar } from '@webows/layout/desktop/taskbar/taskbar';
+import { WindowManager } from '@webows/core/window/window-manager';
 import { WorkdayCalculator } from '@webows/features/workday-calculator/workday-calculator';
 
 /**
@@ -50,12 +51,13 @@ import { WorkdayCalculator } from '@webows/features/workday-calculator/workday-c
   templateUrl: './desktop.html',
   styleUrl: './desktop.scss'
 })
-export class Desktop {
+export class Desktop implements OnInit {
 
   readonly DesktopAppId = DesktopAppId;
   readonly DESKTOP_APPS = DESKTOP_APPS;
 
   private readonly windowManager = inject(WindowManager);
+  private readonly route = inject(ActivatedRoute);
 
   readonly apps = Object.values(DESKTOP_APPS);
   readonly windows = this.windowManager.windows;
@@ -63,8 +65,20 @@ export class Desktop {
   private readonly _showMenu = signal(false);
   readonly showMenu = this._showMenu.asReadonly();
 
-  onLaunch(id: DesktopAppMeta): void {
-    this.windowManager.open(id);
+  ngOnInit(): void {
+    // auto launch the specified app if path param is provided
+    const autoLaunchAppId: string | null = this.route.snapshot.paramMap.get('appId');
+
+    if (autoLaunchAppId) {
+      const id = autoLaunchAppId as DesktopAppId;
+      if (Object.values(DesktopAppId).includes(id)) {
+        this.onLaunch(DESKTOP_APPS[id]);
+      }
+    }
+  }
+
+  onLaunch(meta: DesktopAppMeta): void {
+    this.windowManager.open(meta);
   }
 
   toggleMenu(): void {
