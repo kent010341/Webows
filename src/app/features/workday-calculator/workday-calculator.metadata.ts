@@ -152,6 +152,13 @@ export const CALCULATOR_KEY_DISLPAY: Record<string, string | LucideIconData> = {
   'm': 'm',
 }
 
+export const UNIT_KEYS: CalculatorKeyInput[] = [
+  CalculatorKeyInput.W,
+  CalculatorKeyInput.D,
+  CalculatorKeyInput.H,
+  CalculatorKeyInput.M,
+]
+
 export const CALCULATOR_KEYS: CalculatorKeyInput[] = [
   CalculatorKeyInput.DELETE,
   CalculatorKeyInput.ESCAPE,
@@ -176,11 +183,6 @@ export const CALCULATOR_KEYS: CalculatorKeyInput[] = [
   CalculatorKeyInput.DIGIT_0,
   CalculatorKeyInput.DOT,
   CalculatorKeyInput.ENTER,
-
-  CalculatorKeyInput.W,
-  CalculatorKeyInput.D,
-  CalculatorKeyInput.H,
-  CalculatorKeyInput.M,
 ];
 
 export function parseTimeToMinutes(time: string): number {

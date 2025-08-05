@@ -29,7 +29,7 @@ import {
   calculateNumberWithWorkday,
   calculateWorkdayWithNumber,
   calculateWorkdayWithWorkday,
-  CALCULATOR_KEY_DISLPAY,
+  CALCULATOR_KEY_DISLPAY as CALCULATOR_KEY_DISPLAY,
   CALCULATOR_KEYS,
   CalculatorKeyInput,
   FUNC_KEY_INPUT,
@@ -39,6 +39,7 @@ import {
   InputMode,
   OPERATOR_KEY_INPUT,
   parseTimeToMinutes,
+  UNIT_KEYS,
 } from '@webows/features/workday-calculator/workday-calculator.metadata';
 import { NgClass } from '@angular/common';
 import { LucideAngularModule } from 'lucide-angular';
@@ -61,7 +62,8 @@ export class WorkdayCalculator extends WindowAppBase {
 
   readonly CalculatorKeyInput = CalculatorKeyInput;
   readonly CALCULATOR_KEYS = CALCULATOR_KEYS;
-  readonly CALCULATOR_KEY_DISLPAY = CALCULATOR_KEY_DISLPAY;
+  readonly UNIT_KEYS = UNIT_KEYS;
+  readonly CALCULATOR_KEY_DISPLAY = CALCULATOR_KEY_DISPLAY;
 
   readonly INIT_META: InputMeta = {
     input: '0',

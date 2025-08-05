@@ -3,41 +3,57 @@
     @if (inputMeta(); as meta) {
       <!-- History display -->
       <div class="h-10 flex items-center justify-end overflow-auto border-b border-[#444] p-2 text-xs">
-        {{meta.history}}
+        {{ meta.history }}
       </div>
-  
+
       <!-- Input result -->
       <div class="h-12 bg-[#111] border-b border-[#444] px-2 flex items-center justify-end font-mono text-base">
         {{ inputMeta().input || '0' }}
       </div>
-  
-      <!-- error -->
+
+      <!-- Error message -->
       <div class="h-5 px-2 flex items-center justify-end text-red-500 text-xs">
         {{ inputMeta().error ?? '' }}
       </div>
     }
-  
-    <!-- Calculator key grid -->
-    <div class="flex-1 grid grid-cols-4 gap-1 p-2 bg-[#1e1e1e] text-white text-lg select-none">
-      @for (key of CALCULATOR_KEYS; track key) {
-        <button
-          class="py-3 rounded flex items-center justify-center"
-          [ngClass]="{
-            'col-span-2': key === '0',
-            'bg-[#2a2a2a] hover:bg-[#3a3a3a]': key !== CalculatorKeyInput.ENTER,
-            'bg-blue-700 hover:bg-blue-800': key === CalculatorKeyInput.ENTER
-          }"
-          (click)="press(key)"
-        >
-          @if (CALCULATOR_KEY_DISLPAY[key]; as icon) {
-            @if (typeof icon !== 'string') {
-              <lucide-icon [img]="icon" class="w-5 h-5" />
-            } @else {
-              {{ icon }}
+
+    <!-- Key grid with unit buttons on the left -->
+    <div class="flex flex-1 p-2 bg-[#1e1e1e] gap-4 select-none">
+      
+      <!-- Unit buttons (W, D, H, M) -->
+      <div class="flex flex-col flex-1 max-w-[60px] gap-2">
+        @for (unit of UNIT_KEYS; track unit) {
+          <button
+            class="flex-1 bg-[#2a2a2a] hover:bg-[#3a3a3a] text-lg rounded flex items-center justify-center"
+            (click)="press(unit)"
+          >
+            {{ unit }}
+          </button>
+        }
+      </div>
+      <!-- Main calculator key grid -->
+      <div class="grid grid-cols-4 gap-1 flex-1 text-lg text-white">
+        @for (key of CALCULATOR_KEYS; track key) {
+          <button
+            class="py-3 rounded flex items-center justify-center"
+            [ngClass]="{
+              'col-span-2': key === '0',
+              'bg-[#2a2a2a] hover:bg-[#3a3a3a]': key !== CalculatorKeyInput.ENTER,
+              'bg-blue-700 hover:bg-blue-800': key === CalculatorKeyInput.ENTER
+            }"
+            (click)="press(key)"
+          >
+            @if (CALCULATOR_KEY_DISPLAY[key]; as icon) {
+              @if (typeof icon !== 'string') {
+                <lucide-icon [img]="icon" class="w-5 h-5" />
+              } @else {
+                {{ icon }}
+              }
             }
-          }
-        </button>
-      }
+          </button>
+        }
+      </div>
+
     </div>
   </div>
 </app-window>
