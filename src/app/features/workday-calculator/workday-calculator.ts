@@ -24,7 +24,7 @@
 
 import { Component, computed, HostListener, signal } from '@angular/core';
 import { Window } from '@webows/components/window/window';
-import { CALCULATOR_KEY_DISLPAY, CALCULATOR_KEYS, CalculatorKeyInput, GENERAL_KEY_INPUT, FUNC_KEY_INPUT, OPERATOR_KEY_INPUT } from '@webows/features/workday-calculator/workday-calculator.metadata';
+import { CALCULATOR_KEY_DISLPAY, CALCULATOR_KEYS, CalculatorKeyInput, GENERAL_KEY_INPUT, FUNC_KEY_INPUT, OPERATOR_KEY_INPUT, parseTimeToMinutes, ResultData, calculateNumberWithNumber, calculateNumberWithWorkday, calculateWorkdayWithNumber, calculateWorkdayWithWorkday } from '@webows/features/workday-calculator/workday-calculator.metadata';
 import { NgClass } from '@angular/common';
 import { LucideAngularModule } from 'lucide-angular';
 import { WindowAppBase } from '@webows/core/window/window-app.base';
@@ -48,9 +48,9 @@ export class WorkdayCalculator extends WindowAppBase {
   readonly CALCULATOR_KEYS = CALCULATOR_KEYS;
   readonly CALCULATOR_KEY_DISLPAY = CALCULATOR_KEY_DISLPAY;
 
-  readonly history = signal<string[]>([]);
+  readonly history = signal<string>('');
   readonly input = signal('0');
-  readonly result = signal('');
+  private readonly result = signal<ResultData>({ dataType: 'number', value: 0 });
 
   readonly display = computed(() => this.input() || this.result());
 
@@ -106,9 +106,9 @@ export class WorkdayCalculator extends WindowAppBase {
   }
 
   private clearAll(): void {
-    this.result.set('0');
+    this.result.set({ dataType: 'number', value: 0 });
     this.input.set('0');
-    this.history.set([]);
+    this.history.set('');
   }
 
   private backspace(): void {
@@ -120,7 +120,65 @@ export class WorkdayCalculator extends WindowAppBase {
     });
   }
 
+  /**
+   * Executes a calculation based on current input, previous result, and pending operator.
+   *
+   * - If operator is Enter, replaces result directly.
+   * - Otherwise dispatches to one of four utility functions based on:
+   *   - number (result) {+ - * /} number (input)
+   *   - workday (result) {* /} number (input)
+   *   - workday (result) {+ -} workday (input)
+   *   - number (result) {invalid unless Enter} workday (input)
+   */
   private calculate(): void {
+    this.result.update(r => {
+      const next = { ...r, error: undefined };
+      const input = this.input();
+      const operator = this.pendingOperator;
+
+      const numericValue = Number(input);
+      const isNum = !isNaN(numericValue) && isFinite(numericValue);
+      
+      // if the previous operator is ENTER, it means this is a new one
+      if (operator === CalculatorKeyInput.ENTER) {
+        if (isNum) {
+          return {
+            dataType: 'number',
+            value: numericValue,
+          };
+        } else {
+          try {
+            return {
+              dataType: 'workday',
+              value: parseTimeToMinutes(input),
+            };
+          } catch (e) {
+            return {
+              ...next,
+              error: e instanceof Error ? e.message : 'Invalid workday input.',
+            };
+          }
+        }
+      }
+
+      if (isNum && next.dataType === 'number') {
+        return calculateNumberWithNumber(numericValue, next, operator);
+      }
+      if (isNum && next.dataType === 'workday') {
+        return calculateNumberWithWorkday(numericValue, next, operator);
+      }
+      if (!isNum && next.dataType === 'workday') {
+        return calculateWorkdayWithWorkday(input, next, operator);
+      }
+      if (!isNum && next.dataType === 'number') {
+        return calculateWorkdayWithNumber(input, next, operator);
+      }
+
+      return {
+        ...next,
+        error: 'Unhandled input combination.',
+      };
+    });
 
   }
 

@@ -42,6 +42,21 @@ export interface CalcKey {
   action?: (sig: WritableSignal<string>) => void;
 }
 
+export interface ResultData {
+
+  dataType: 'number' | 'workday';
+
+  /**
+   * Current result value. If {@link dataType} is:
+   * - 'number': pure number
+   * - 'workday': workday parsed in minutes
+   */
+  value: number;
+
+  error?: string;
+
+}
+
 export enum CalculatorKeyInput {
   // unction keys
   DELETE = 'Delete',
@@ -144,3 +159,152 @@ export const CALCULATOR_KEYS: CalculatorKeyInput[] = [
   CalculatorKeyInput.H,
   CalculatorKeyInput.M,
 ];
+
+export function parseTimeToMinutes(time: string): number {
+  const validTimeRegex = /^[\d.\swdhm]+$/;
+  const matchesRegex = /(\d+\.?\d*)\s*([wdhm])/g;
+
+  if (!validTimeRegex.test(time)) {
+    throw new Error('Invalid time format.');
+  }
+
+  let totalMinutes = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = matchesRegex.exec(time)) !== null) {
+    const value = parseFloat(match[1]);
+    const unit = match[2];
+
+    switch (unit) {
+      case 'w':
+        totalMinutes += value * 5 * 8 * 60;
+        break;
+      case 'd':
+        totalMinutes += value * 8 * 60;
+        break;
+      case 'h':
+        totalMinutes += value * 60;
+        break;
+      case 'm':
+        totalMinutes += value;
+        break;
+    }
+  }
+
+  return totalMinutes;
+}
+
+/**
+ * Case: number (result) { + - * / } number (input)
+ * Fully supports all arithmetic operators.
+ */
+export function calculateNumberWithNumber(
+  input: number,
+  state: ResultData,
+  op: CalculatorKeyInput
+): ResultData {
+  if (op === CalculatorKeyInput.DIVIDE && input === 0) {
+    return { ...state, error: 'Division by zero' };
+  }
+
+  let result = state.value;
+  switch (op) {
+    case CalculatorKeyInput.PLUS:
+      result += input;
+      break;
+    case CalculatorKeyInput.MINUS:
+      result -= input;
+      break;
+    case CalculatorKeyInput.TIMES:
+      result *= input;
+      break;
+    case CalculatorKeyInput.DIVIDE:
+      result /= input;
+      break;
+  }
+
+  return { dataType: 'number', value: result };
+}
+
+/**
+ * Case: workday (result) { * / } number (input)
+ * Only multiplication and division are allowed.
+ */
+export function calculateNumberWithWorkday(
+  input: number,
+  state: ResultData,
+  op: CalculatorKeyInput
+): ResultData {
+  if (op === CalculatorKeyInput.PLUS || op === CalculatorKeyInput.MINUS) {
+    return { ...state, error: 'Operator not allowed' };
+  }
+  if (op === CalculatorKeyInput.DIVIDE && input === 0) {
+    return { ...state, error: 'Division by zero' };
+  }
+
+  const result = op === CalculatorKeyInput.TIMES
+    ? state.value * input
+    : state.value / input;
+
+  return { dataType: 'workday', value: result };
+}
+
+/**
+ * Case: workday (result) { + - } workday (input)
+ * Supports only addition and subtraction.
+ */
+export function calculateWorkdayWithWorkday(
+  input: string,
+  state: ResultData,
+  op: CalculatorKeyInput
+): ResultData {
+  try {
+    if (op !== CalculatorKeyInput.PLUS && op !== CalculatorKeyInput.MINUS) {
+      return {
+        ...state,
+        error: 'Operator not allowed'
+      };
+    }
+
+    const val = parseTimeToMinutes(input);
+
+    switch (op) {
+      case CalculatorKeyInput.PLUS:
+        return { dataType: 'workday', value: state.value + val };
+      case CalculatorKeyInput.MINUS:
+        return { dataType: 'workday', value: state.value - val };
+    }
+  } catch (e) {
+    return { ...state, error: 'Invalid workday' };
+  }
+}
+
+/**
+ * Case: number (result) { * } workday (input)
+ * Only multiplication is allowed. All other operators are rejected.
+ */
+export function calculateWorkdayWithNumber(
+  input: string,
+  state: ResultData,
+  op: CalculatorKeyInput
+): ResultData {
+  if (op !== CalculatorKeyInput.TIMES) {
+    return {
+      ...state,
+      error: 'Operator not allowed',
+    };
+  }
+
+  try {
+    const val = parseTimeToMinutes(input);
+    return {
+      dataType: 'workday',
+      value: state.value * val,
+    };
+  } catch (e) {
+    return {
+      ...state,
+      error: 'Invalid workday',
+    };
+  }
+}
