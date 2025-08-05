@@ -30,7 +30,32 @@ import {
   LucideIconData,
 } from 'lucide-angular';
 
-export interface ResultData {
+/**
+ * Represents the current mode of input behavior in a calculator UI.
+ */
+export enum InputMode {
+
+  /**
+   * Next {@link GENERAL_KEY_INPUT} will replace the current input.
+   * Triggered after {@link FUNC_KEY_INPUT} or {@link OPERATOR_KEY_INPUT},
+   * excluding {@link CalculatorKeyInput.BACKSPACE}.
+   */
+  REPLACE = 'REPLACE',
+
+  /**
+   * Next {@link GENERAL_KEY_INPUT} will be appended to the current input.
+   * Triggered after {@link GENERAL_KEY_INPUT} or {@link CalculatorKeyInput.BACKSPACE}.
+   */
+  APPEND = 'APPEND',
+
+}
+
+
+export interface InputMeta {
+
+  input: string;
+
+  mode: InputMode;
 
   dataType: 'number' | 'workday';
 
@@ -40,6 +65,8 @@ export interface ResultData {
    * - 'workday': workday parsed in minutes
    */
   value: number;
+
+  pendingOperator: CalculatorKeyInput;
 
   error?: string;
 
@@ -84,9 +111,15 @@ export const FUNC_KEY_INPUT = new Set<string>(['Delete', 'Escape', 'Backspace'])
 // operator keys, which cause a calculating process.
 export const OPERATOR_KEY_INPUT = new Set<string>(['+', '-', '*', '/', 'Enter']);
 
+// Units, which is directly append to current input.
+export const UNIT_KEY_INPUT = new Set<string>(['w', 'd', 'h', 'm']);
+
+// Digits, which is directly append to current input.
+export const DIGIT_KEY_INPUT = new Set<string>(['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']);
+
 // Units, Digits and decimal point, which is directly append to current input.
 export const GENERAL_KEY_INPUT = new Set<string>([
-  'w', 'd', 'h', 'm', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.'
+  ...UNIT_KEY_INPUT, ...DIGIT_KEY_INPUT, '.'
 ]);
 
 export const CALCULATOR_KEY_DISLPAY: Record<string, string | LucideIconData> = {
@@ -183,20 +216,66 @@ export function parseTimeToMinutes(time: string): number {
 }
 
 /**
+ * Converts total minutes into a human-readable time string using weeks (w), days (d), hours (h), and minutes (m).
+ * Follows the conversion: 1w = 5d, 1d = 8h, 1h = 60m.
+ *
+ * @param totalMinutes - Total time in minutes
+ * @returns Time string (e.g., "1w2d3h15m")
+ */
+export function formatMinutesToTime(totalMinutes: number): string {
+  if (!Number.isFinite(totalMinutes) || totalMinutes < 0) {
+    throw new Error('Invalid totalMinutes value.');
+  }
+
+  const MINUTES_IN_HOUR = 60;
+  const HOURS_IN_DAY = 8;
+  const DAYS_IN_WEEK = 5;
+
+  const MINUTES_IN_DAY = HOURS_IN_DAY * MINUTES_IN_HOUR;
+  const MINUTES_IN_WEEK = DAYS_IN_WEEK * MINUTES_IN_DAY;
+
+  const weeks = Math.floor(totalMinutes / MINUTES_IN_WEEK);
+  totalMinutes %= MINUTES_IN_WEEK;
+
+  const days = Math.floor(totalMinutes / MINUTES_IN_DAY);
+  totalMinutes %= MINUTES_IN_DAY;
+
+  const hours = Math.floor(totalMinutes / MINUTES_IN_HOUR);
+  const minutes = +(totalMinutes % MINUTES_IN_HOUR).toFixed(1);
+
+  let result = '';
+  if (weeks > 0) {
+    result += `${weeks}w`;
+  }
+  if (days > 0) {
+    result += `${days}d`;
+  }
+  if (hours > 0) {
+    result += `${hours}h`;
+  }
+  if (minutes > 0) {
+    result += `${minutes}m`;
+  }
+
+  return result || '0m';
+} 
+
+/**
  * Case: number (result) { + - * / } number (input)
  * Fully supports all arithmetic operators.
  */
 export function calculateNumberWithNumber(
   input: number,
-  state: ResultData,
-  op: CalculatorKeyInput
-): ResultData {
-  if (op === CalculatorKeyInput.DIVIDE && input === 0) {
-    return { ...state, error: 'Division by zero' };
+  state: InputMeta,
+  nextOp: CalculatorKeyInput
+): InputMeta {
+  const preOp = state.pendingOperator;
+  if (preOp === CalculatorKeyInput.DIVIDE && input === 0) {
+    return { ...state, error: 'Division by zero', mode: InputMode.APPEND };
   }
 
   let result = state.value;
-  switch (op) {
+  switch (preOp) {
     case CalculatorKeyInput.PLUS:
       result += input;
       break;
@@ -211,7 +290,13 @@ export function calculateNumberWithNumber(
       break;
   }
 
-  return { dataType: 'number', value: result };
+  return {
+    input: String(result),
+    dataType: 'number',
+    value: result,
+    pendingOperator: nextOp,
+    mode: InputMode.REPLACE
+  };
 }
 
 /**
@@ -220,21 +305,28 @@ export function calculateNumberWithNumber(
  */
 export function calculateNumberWithWorkday(
   input: number,
-  state: ResultData,
-  op: CalculatorKeyInput
-): ResultData {
-  if (op === CalculatorKeyInput.PLUS || op === CalculatorKeyInput.MINUS) {
-    return { ...state, error: 'Operator not allowed' };
+  state: InputMeta,
+  nextOp: CalculatorKeyInput
+): InputMeta {
+  const preOp = state.pendingOperator;
+  if (preOp === CalculatorKeyInput.PLUS || preOp === CalculatorKeyInput.MINUS) {
+    return { ...state, error: 'Operator not allowed', mode: InputMode.APPEND };
   }
-  if (op === CalculatorKeyInput.DIVIDE && input === 0) {
-    return { ...state, error: 'Division by zero' };
+  if (preOp === CalculatorKeyInput.DIVIDE && input === 0) {
+    return { ...state, error: 'Division by zero', mode: InputMode.APPEND };
   }
 
-  const result = op === CalculatorKeyInput.TIMES
+  const result = preOp === CalculatorKeyInput.TIMES
     ? state.value * input
     : state.value / input;
 
-  return { dataType: 'workday', value: result };
+  return {
+    input: formatMinutesToTime(result),
+    dataType: 'workday',
+    value: result,
+    pendingOperator: nextOp,
+    mode: InputMode.REPLACE
+  };
 }
 
 /**
@@ -243,27 +335,47 @@ export function calculateNumberWithWorkday(
  */
 export function calculateWorkdayWithWorkday(
   input: string,
-  state: ResultData,
-  op: CalculatorKeyInput
-): ResultData {
+  state: InputMeta,
+  nextOp: CalculatorKeyInput
+): InputMeta {
+  const preOp = state.pendingOperator;
   try {
-    if (op !== CalculatorKeyInput.PLUS && op !== CalculatorKeyInput.MINUS) {
+    if (preOp !== CalculatorKeyInput.PLUS && preOp !== CalculatorKeyInput.MINUS) {
       return {
         ...state,
-        error: 'Operator not allowed'
+        error: 'Operator not allowed',
+        mode: InputMode.APPEND
       };
     }
 
     const val = parseTimeToMinutes(input);
-
-    switch (op) {
+    
+    switch (preOp) {
       case CalculatorKeyInput.PLUS:
-        return { dataType: 'workday', value: state.value + val };
+        const r1 = state.value + val;
+        return {
+          input: formatMinutesToTime(r1),
+          dataType: 'workday',
+          value: state.value + val,
+          pendingOperator: nextOp,
+          mode: InputMode.REPLACE
+        };
       case CalculatorKeyInput.MINUS:
-        return { dataType: 'workday', value: state.value - val };
+        const r2 = state.value - val;
+        return {
+          input: formatMinutesToTime(r2),
+          dataType: 'workday',
+          value: r2,
+          pendingOperator: nextOp,
+          mode: InputMode.REPLACE
+        };
     }
   } catch (e) {
-    return { ...state, error: 'Invalid workday' };
+    return {
+      ...state,
+      error: 'Invalid workday',
+      mode: InputMode.APPEND
+    };
   }
 }
 
@@ -273,10 +385,11 @@ export function calculateWorkdayWithWorkday(
  */
 export function calculateWorkdayWithNumber(
   input: string,
-  state: ResultData,
-  op: CalculatorKeyInput
-): ResultData {
-  if (op !== CalculatorKeyInput.TIMES) {
+  state: InputMeta,
+  nextOp: CalculatorKeyInput
+): InputMeta {
+  const preOp = state.pendingOperator;
+  if (preOp !== CalculatorKeyInput.TIMES) {
     return {
       ...state,
       error: 'Operator not allowed',
@@ -285,14 +398,19 @@ export function calculateWorkdayWithNumber(
 
   try {
     const val = parseTimeToMinutes(input);
+    const result = state.value * val;
     return {
+      input: formatMinutesToTime(result),
       dataType: 'workday',
-      value: state.value * val,
+      value: result,
+      pendingOperator: nextOp,
+      mode: InputMode.REPLACE
     };
   } catch (e) {
     return {
       ...state,
       error: 'Invalid workday',
+      mode: InputMode.APPEND
     };
   }
 }

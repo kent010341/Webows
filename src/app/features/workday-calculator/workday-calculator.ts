@@ -34,9 +34,10 @@ import {
   CalculatorKeyInput,
   FUNC_KEY_INPUT,
   GENERAL_KEY_INPUT,
+  InputMeta,
+  InputMode,
   OPERATOR_KEY_INPUT,
   parseTimeToMinutes,
-  ResultData,
 } from '@webows/features/workday-calculator/workday-calculator.metadata';
 import { NgClass } from '@angular/common';
 import { LucideAngularModule } from 'lucide-angular';
@@ -62,16 +63,17 @@ export class WorkdayCalculator extends WindowAppBase {
   readonly CALCULATOR_KEY_DISLPAY = CALCULATOR_KEY_DISLPAY;
 
   readonly history = signal<string>('');
-  readonly input = signal('0');
 
-  private readonly _result = signal<ResultData>({ dataType: 'number', value: 0 });
-  readonly result = this._result.asReadonly();
+  private readonly _inputMeta = signal<InputMeta>({
+    input: '0',
+    dataType: 'number',
+    value: 0,
+    pendingOperator: CalculatorKeyInput.ENTER,
+    mode: InputMode.REPLACE
+  });
+  readonly inputMeta = this._inputMeta.asReadonly();
 
-  readonly display = computed(() => this.input() || this._result());
-
-  readonly isInputEmpty = computed(() => this.input() === '0');
-
-  private pendingOperator: CalculatorKeyInput = CalculatorKeyInput.ENTER;
+  private readonly inputMode = computed(() => this.inputMeta().mode);
 
   /**
    * Handle keyboard input
@@ -95,7 +97,11 @@ export class WorkdayCalculator extends WindowAppBase {
 
   private applyInput(key: CalculatorKeyInput): void {
     if (GENERAL_KEY_INPUT.has(key)) {
-      this.input.update(f => this.isInputEmpty() ? key : f + key);
+      this.updateInput(f => this.inputMode() === InputMode.APPEND ? f + key : key);
+      this._inputMeta.update(m => ({
+        ...m,
+        mode: InputMode.APPEND
+      }));
     } else if (FUNC_KEY_INPUT.has(key)) {
       switch (key) {
         case CalculatorKeyInput.BACKSPACE:
@@ -109,29 +115,45 @@ export class WorkdayCalculator extends WindowAppBase {
           break;
       }
     } else if (OPERATOR_KEY_INPUT.has(key)) {
-          this.pendingOperator = key;
-          this.clearEntry();
-          this.calculate();
+        this.calculate(key);
     }
   }
 
   private clearEntry(): void {
-    this.input.set('0');
+    this.setInput('0');
   }
 
   private clearAll(): void {
-    this._result.set({ dataType: 'number', value: 0 });
-    this.input.set('0');
+    this._inputMeta.set({
+      input: '0',
+      dataType: 'number',
+      value: 0,
+      pendingOperator: CalculatorKeyInput.ENTER,
+      mode: InputMode.REPLACE
+    });
+    this.setInput('0');
     this.history.set('');
   }
 
   private backspace(): void {
-    this.input.update(f => {
-      if (this.isInputEmpty()) {
-        return f;
+    if (this.inputMode() === InputMode.REPLACE) {
+      return;
+    }
+
+    this.updateInput(f => {
+      if (f.length === 1) {
+        return '0';
       }
       return f.slice(0, -1);
     });
+  }
+
+  private setInput(input: string): void {
+    this._inputMeta.update(m => ({ ...m, input }));
+  }
+
+  private updateInput(patcher: (input: string) => string): void {
+    this._inputMeta.update(m => ({ ...m, input: patcher(m.input) }));
   }
 
   /**
@@ -144,48 +166,55 @@ export class WorkdayCalculator extends WindowAppBase {
    *   - workday (result) {+ -} workday (input)
    *   - number (result) {invalid unless Enter} workday (input)
    */
-  private calculate(): void {
-    this._result.update(r => {
+  private calculate(nextOp: CalculatorKeyInput): void {
+    this._inputMeta.update(r => {
       const next = { ...r, error: undefined };
-      const input = this.input();
-      const operator = this.pendingOperator;
+      const input = r.input;
+      const preOp = r.pendingOperator;
 
       const numericValue = Number(input);
       const isNum = !isNaN(numericValue) && isFinite(numericValue);
       
       // if the previous operator is ENTER, it means this is a new one
-      if (operator === CalculatorKeyInput.ENTER) {
+      if (preOp === CalculatorKeyInput.ENTER) {
         if (isNum) {
           return {
+            input,
             dataType: 'number',
             value: numericValue,
+            pendingOperator: nextOp,
+            mode: InputMode.REPLACE
           };
         } else {
           try {
             return {
+              input,
               dataType: 'workday',
               value: parseTimeToMinutes(input),
+              pendingOperator: nextOp,
+              mode: InputMode.REPLACE
             };
           } catch (e) {
             return {
               ...next,
               error: e instanceof Error ? e.message : 'Invalid workday input.',
+              mode: InputMode.APPEND
             };
           }
         }
       }
 
       if (isNum && next.dataType === 'number') {
-        return calculateNumberWithNumber(numericValue, next, operator);
+        return calculateNumberWithNumber(numericValue, next, nextOp);
       }
       if (isNum && next.dataType === 'workday') {
-        return calculateNumberWithWorkday(numericValue, next, operator);
+        return calculateNumberWithWorkday(numericValue, next, nextOp);
       }
       if (!isNum && next.dataType === 'workday') {
-        return calculateWorkdayWithWorkday(input, next, operator);
+        return calculateWorkdayWithWorkday(input, next, nextOp);
       }
       if (!isNum && next.dataType === 'number') {
-        return calculateWorkdayWithNumber(input, next, operator);
+        return calculateWorkdayWithNumber(input, next, nextOp);
       }
 
       return {

@@ -11,12 +11,12 @@
 
     <!-- Input result -->
     <div class="h-12 bg-[#111] border-b border-[#444] px-2 flex items-center justify-end font-mono text-base">
-      {{ display() || '0' }}
+      {{ inputMeta().input || '0' }}
     </div>
 
     <!-- error -->
     <div class="h-5 px-2 flex items-center justify-end text-red-500 text-xs">
-      {{ result().error ?? '' }}
+      {{ inputMeta().error ?? '' }}
     </div>
 
     <!-- Calculator key grid -->
