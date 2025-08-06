@@ -27,9 +27,8 @@ import { Desktop } from './layout/desktop/desktop';
 
 export const routes: Routes = [
     {
-        path: '', children: [
-            { path: '', component: Desktop },
-            { path: ':appId', component: Desktop},
-        ]
+        path: '',
+        component: Desktop,
     },
+    { path: '**', redirectTo: '', pathMatch: 'full' }
 ];

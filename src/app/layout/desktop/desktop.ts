@@ -67,7 +67,7 @@ export class Desktop implements OnInit {
 
   ngOnInit(): void {
     // auto launch the specified app if path param is provided
-    const autoLaunchAppId: string | null = this.route.snapshot.paramMap.get('appId');
+    const autoLaunchAppId: string | null = this.route.snapshot.queryParamMap.get('open');
 
     if (autoLaunchAppId) {
       const id = autoLaunchAppId as DesktopAppId;
