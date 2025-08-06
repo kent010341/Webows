@@ -24,8 +24,11 @@
       <div class="flex flex-col flex-1 max-w-[60px] gap-2">
         @for (unit of UNIT_KEYS; track unit) {
           <button
-            class="flex-1 bg-[#2a2a2a] hover:bg-[#3a3a3a] text-lg rounded flex items-center justify-center"
+            class="flex-1 bg-[#2a2a2a] text-lg rounded flex items-center justify-center
+              hover:bg-[#3a3a3a] disabled:hover:bg-[#2a2a2a]
+              disabled:opacity-50 disabled:cursor-not-allowed"
             (click)="press(unit)"
+            [disabled]="isUnitDisable()"
           >
             {{ unit }}
           </button>

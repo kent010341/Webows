@@ -40,6 +40,7 @@ import {
   InputMode,
   OPERATOR_KEY_INPUT,
   parseTimeToMinutes,
+  UNIT_KEY_INPUT,
   UNIT_KEYS,
 } from '@webows/features/workday-calculator/workday-calculator.metadata';
 import { NgClass } from '@angular/common';
@@ -80,6 +81,13 @@ export class WorkdayCalculator extends WindowAppBase {
 
   private readonly inputMode = computed(() => this.inputMeta().mode);
 
+  readonly isUnitDisable = computed(() => {
+    const meta = this.inputMeta();
+    return meta.mode === InputMode.REPLACE
+      || UNIT_KEY_INPUT.has(meta.input.slice(-1))
+      || meta.input === '0'; 
+  }); 
+
   /**
    * Handle keyboard input
    */
@@ -102,6 +110,10 @@ export class WorkdayCalculator extends WindowAppBase {
 
   private applyInput(key: CalculatorKeyInput): void {
     if (GENERAL_KEY_INPUT.has(key)) {
+      if (UNIT_KEY_INPUT.has(key) && this.isUnitDisable()) {
+        return;
+      }
+
       this._inputMeta.update(m => {
         // set input
         let input;
