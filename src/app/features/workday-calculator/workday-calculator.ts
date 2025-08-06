@@ -22,30 +22,26 @@
  * SOFTWARE.
  */
 
-import { Component, computed, HostListener, signal } from '@angular/core';
+import { Component, computed, HostListener, inject, signal } from '@angular/core';
 import { Window } from '@webows/components/window/window';
 import {
-  calculateNumberWithNumber,
-  calculateNumberWithWorkday,
-  calculateWorkdayWithNumber,
-  calculateWorkdayWithWorkday,
   CALCULATOR_KEY_DISLPAY as CALCULATOR_KEY_DISPLAY,
   CALCULATOR_KEYS,
   CalculatorKeyInput,
-  formatMinutesToTime,
   FUNC_KEY_INPUT,
   GENERAL_KEY_INPUT,
   generateHistory,
   InputMeta,
   InputMode,
   OPERATOR_KEY_INPUT,
-  parseTimeToMinutes,
   UNIT_KEY_INPUT,
   UNIT_KEYS,
+  WorkdaySetting,
 } from '@webows/features/workday-calculator/workday-calculator.metadata';
 import { NgClass } from '@angular/common';
 import { LucideAngularModule } from 'lucide-angular';
 import { WindowAppBase } from '@webows/core/window/window-app.base';
+import { WorkdayConversion } from './workday-conversion';
 
 /**
  * Workday calculator app with structured input handling and custom unit conversion.
@@ -59,6 +55,9 @@ import { WindowAppBase } from '@webows/core/window/window-app.base';
     Window
   ],
   templateUrl: './workday-calculator.html',
+  providers:[
+    WorkdayConversion,
+  ]
 })
 export class WorkdayCalculator extends WindowAppBase {
 
@@ -66,6 +65,22 @@ export class WorkdayCalculator extends WindowAppBase {
   readonly CALCULATOR_KEYS = CALCULATOR_KEYS;
   readonly UNIT_KEYS = UNIT_KEYS;
   readonly CALCULATOR_KEY_DISPLAY = CALCULATOR_KEY_DISPLAY;
+
+  private readonly workdayConversion = inject(WorkdayConversion);
+  
+  readonly settings = this.workdayConversion.settings;
+
+  private readonly _tempSettings = signal<WorkdaySetting>({ ...this.settings() });
+
+  readonly tempSettings = this._tempSettings.asReadonly();
+
+  readonly canApplySettings = computed(() => {
+    const applied = this.settings();
+    const now = this.tempSettings();
+
+    return applied.daysPerWeek !== now.daysPerWeek
+      || applied.hoursPerDay !== now.hoursPerDay;
+  });
 
   readonly INIT_META: InputMeta = {
     input: '0',
@@ -112,6 +127,30 @@ export class WorkdayCalculator extends WindowAppBase {
 
   press(key: CalculatorKeyInput): void {
     this.applyInput(key);
+  }
+
+  /**
+   * Increment/decrement temp personal settings
+   */
+  adjustTempSetting(field: keyof WorkdaySetting, delta: number): void {
+    const current = this.tempSettings();
+
+    this._tempSettings.update(s => {
+      const next = { ...s };
+
+      if (field === 'daysPerWeek') {
+        next.daysPerWeek = Math.min(7, Math.max(1, current.daysPerWeek + delta));
+      } else if (field === 'hoursPerDay') {
+        next.hoursPerDay = Math.min(24, Math.max(1, current.hoursPerDay + delta));
+      }
+
+      return next;
+    });
+  }
+
+  submitPersonalSettings(): void {
+    this.workdayConversion.updateSetting(this.tempSettings());
+    this.clearAll();
   }
 
   private applyInput(key: CalculatorKeyInput): void {
@@ -255,8 +294,8 @@ export class WorkdayCalculator extends WindowAppBase {
           };
         } else {
           try {
-            const value = parseTimeToMinutes(input);
-            const history = generateHistory(formatMinutesToTime(value), nextOp);
+            const value = this.workdayConversion.parseTimeToMinutes(input);
+            const history = generateHistory(this.workdayConversion.formatMinutesToTime(value), nextOp);
             return {
               input,
               mode: InputMode.REPLACE,
@@ -275,23 +314,7 @@ export class WorkdayCalculator extends WindowAppBase {
         }
       }
 
-      if (isNum && next.dataType === 'number') {
-        return calculateNumberWithNumber(next, nextOp);
-      }
-      if (isNum && next.dataType === 'workday') {
-        return calculateNumberWithWorkday(next, nextOp);
-      }
-      if (!isNum && next.dataType === 'workday') {
-        return calculateWorkdayWithWorkday(next, nextOp);
-      }
-      if (!isNum && next.dataType === 'number') {
-        return calculateWorkdayWithNumber(next, nextOp);
-      }
-
-      return {
-        ...next,
-        error: 'Unhandled input combination.',
-      };
+      return this.workdayConversion.calculate(isNum, next, nextOp);
     });
 
   }

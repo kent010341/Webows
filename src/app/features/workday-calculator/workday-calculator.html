@@ -1,5 +1,55 @@
 <app-window [instance]="instance">
   <div class="flex flex-col h-full w-full text-white text-sm">
+    <!-- Personal setting controls -->
+    <div class="px-2 py-1 text-sm text-gray-400">
+      Time unit conversion:
+    </div>
+    <div class="flex items-center justify-between border-b border-[#444] px-2 py-1 text-xs text-white gap-4">
+      <!-- Days per week -->
+      <div class="flex items-center justify-end gap-2 flex-1">
+        <button
+          class="w-6 h-6 text-sm rounded bg-[#2a2a2a] hover:bg-[#3a3a3a]"
+          (click)="adjustTempSetting('daysPerWeek', -1)"
+        >−</button>
+        <span class="w-4 text-center">{{ tempSettings().daysPerWeek }}d</span>
+        <button
+          class="w-6 h-6 text-sm rounded bg-[#2a2a2a] hover:bg-[#3a3a3a]"
+          (click)="adjustTempSetting('daysPerWeek', 1)"
+        >+</button>
+        <span class="w-5">/ w</span>
+      </div>
+
+      <!-- Divider -->
+      <div class="border-l border-[#444] h-5"></div>
+
+      <!-- Hours per day -->
+      <div class="flex items-center gap-2 flex-1">
+        <button
+          class="w-6 h-6 text-sm rounded bg-[#2a2a2a] hover:bg-[#3a3a3a]"
+          (click)="adjustTempSetting('hoursPerDay', -1)"
+        >−</button>
+        <span class="w-4 text-center">{{ tempSettings().hoursPerDay }}h</span>
+        <button
+          class="w-6 h-6 text-sm rounded bg-[#2a2a2a] hover:bg-[#3a3a3a]"
+          (click)="adjustTempSetting('hoursPerDay', 1)"
+        >+</button>
+        <span class="w-5">/ d</span>
+      </div>
+
+      <!-- Submit button -->
+      <button
+        class="px-3 py-1 rounded text-sm transition-all duration-100"
+        [ngClass]="canApplySettings() ? {
+          'bg-blue-600 hover:bg-blue-700 text-white shadow-md': true
+        } : {
+          'bg-[#2a2a2a] text-gray-400 opacity-50 cursor-not-allowed': true
+        }"
+        (click)="submitPersonalSettings()"
+      >
+        Apply
+      </button>
+    </div>
+
     @if (inputMeta(); as meta) {
       <!-- History display -->
       <div class="h-10 flex items-center justify-end overflow-auto border-b border-[#444] p-2 text-xs">
