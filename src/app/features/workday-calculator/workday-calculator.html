@@ -29,6 +29,7 @@
               disabled:opacity-50 disabled:cursor-not-allowed"
             (click)="press(unit)"
             [disabled]="isUnitDisable()"
+            [ngClass]="{ 'translate-y-[2px] ring ring-blue-500': activeKey() === unit }"
           >
             {{ unit }}
           </button>
@@ -42,7 +43,8 @@
             [ngClass]="{
               'col-span-2': key === '0',
               'bg-[#2a2a2a] hover:bg-[#3a3a3a]': key !== CalculatorKeyInput.ENTER,
-              'bg-blue-700 hover:bg-blue-800': key === CalculatorKeyInput.ENTER
+              'bg-blue-700 hover:bg-blue-800': key === CalculatorKeyInput.ENTER,
+              'translate-y-[2px] ring ring-blue-500': activeKey() === key
             }"
             (click)="press(key)"
           >

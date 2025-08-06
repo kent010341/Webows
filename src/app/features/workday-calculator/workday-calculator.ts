@@ -81,6 +81,12 @@ export class WorkdayCalculator extends WindowAppBase {
 
   private readonly inputMode = computed(() => this.inputMeta().mode);
 
+  /**
+   * Currently active key for visual feedback.
+   */
+  private readonly _activeKey = signal<CalculatorKeyInput | null>(null);
+  readonly activeKey = this._activeKey.asReadonly();
+
   readonly isUnitDisable = computed(() => {
     const meta = this.inputMeta();
     return meta.mode === InputMode.REPLACE
@@ -109,6 +115,7 @@ export class WorkdayCalculator extends WindowAppBase {
   }
 
   private applyInput(key: CalculatorKeyInput): void {
+    this.triggerActiveKey(key);
     if (GENERAL_KEY_INPUT.has(key)) {
       if (UNIT_KEY_INPUT.has(key) && this.isUnitDisable()) {
         return;
@@ -158,7 +165,7 @@ export class WorkdayCalculator extends WindowAppBase {
           break;
       }
     } else if (OPERATOR_KEY_INPUT.has(key)) {
-        this.calculate(key);
+      this.calculate(key);
     }
   }
 
@@ -183,6 +190,16 @@ export class WorkdayCalculator extends WindowAppBase {
       ...m,
       input: m.input.length === 1 ? '0' : m.input.slice(0, -1)
     }));
+  }
+
+  /**
+   * Mark a key as active for a short duration (used for UI effect).
+   */
+  private triggerActiveKey(key: CalculatorKeyInput) {
+    this._activeKey.set(key);
+    setTimeout(() => {
+      this._activeKey.set(null);
+    }, 150);
   }
 
   /**
