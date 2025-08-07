@@ -33,6 +33,7 @@ import { Notepad } from '@webows/features/notepad/notepad';
 import { Taskbar } from '@webows/layout/desktop/taskbar/taskbar';
 import { WindowManager } from '@webows/core/window/window-manager';
 import { WorkdayCalculator } from '@webows/features/workday-calculator/workday-calculator';
+import { EditAndGo } from '@webows/features/edit-and-go/edit-and-go';
 
 /**
  * This component represents the main desktop environment.
@@ -47,6 +48,7 @@ import { WorkdayCalculator } from '@webows/features/workday-calculator/workday-c
     Notepad,
     Taskbar,
     WorkdayCalculator,
+    EditAndGo,
   ],
   templateUrl: './desktop.html',
   styleUrl: './desktop.scss'

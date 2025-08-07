@@ -22,30 +22,18 @@
  * SOFTWARE.
  */
 
-import { DesktopAppId } from './desktop-app.enum';
-import { DesktopAppMeta } from './desktop-app.model';
-import { Notepad } from '@webows/features/notepad/notepad';
-import { ApertureIcon, StickyNoteIcon, TimerIcon } from 'lucide-angular';
-import { WorkdayCalculator } from '@webows/features/workday-calculator/workday-calculator';
-import { EditAndGo } from '@webows/features/edit-and-go/edit-and-go';
+import { Component } from '@angular/core';
+import { Window } from '@webows/components/window/window';
+import { WindowAppBase } from '@webows/core/window/window-app.base';
 
-export const DESKTOP_APPS: Record<DesktopAppId, DesktopAppMeta> = {
-  [DesktopAppId.Notepad]: {
-    id: DesktopAppId.Notepad,
-    icon: StickyNoteIcon,
-    label: 'Notepad',
-    component: Notepad,
-  },
-  [DesktopAppId.WorkdayCalculator]: {
-    id: DesktopAppId.WorkdayCalculator,
-    icon: TimerIcon,
-    label: 'Workday Calculator',
-    component: WorkdayCalculator,
-  },
-  [DesktopAppId.EditAndGo]: {
-    id: DesktopAppId.EditAndGo,
-    icon: ApertureIcon,
-    label: 'Edit & Go',
-    component: EditAndGo,
-  }
-};
+@Component({
+  selector: 'app-edit-and-go',
+  imports: [
+    Window
+  ],
+  templateUrl: './edit-and-go.html',
+  styleUrl: './edit-and-go.scss'
+})
+export class EditAndGo extends WindowAppBase {
+
+}
