@@ -160,10 +160,20 @@ export class Window implements OnInit, AfterViewInit {
         };
 
         return mouseMove$.pipe(
-          map(moveEvent => ({
-            x: moveEvent.clientX - offset.x,
-            y: moveEvent.clientY - offset.y,
-          })),
+          map(moveEvent => {
+          const viewportWidth = window.innerWidth;
+          const viewportHeight = window.innerHeight;
+          const { width, height } = this.titleEl.nativeElement.getBoundingClientRect();
+
+          let x = moveEvent.clientX - offset.x;
+          let y = moveEvent.clientY - offset.y;
+
+          // prevent any part of window from going outside
+          x = Math.max(0, Math.min(x, viewportWidth - width));
+          y = Math.max(0, Math.min(y, viewportHeight - height - 40));  // 40 is taskbar
+
+          return { x, y };
+        }),
           // Ends the drag stream when mouse is released
           takeUntil(mouseUp$)
         );
