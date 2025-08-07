@@ -53,6 +53,22 @@ export class Window implements OnInit, AfterViewInit {
   set instance(inst: WindowInstance) {
     this.windowInstance.set(inst);
   }
+  
+  /**
+   * The minimum width in pixels that the window can be resized to.
+   * Enforced during drag-based resizing to prevent the window from collapsing too small.
+   * Default is 400px.
+   */
+  @Input()
+  minWidth = 400;
+
+  /**
+   * The minimum height in pixels that the window can be resized to.
+   * Enforced during drag-based resizing to prevent the window from collapsing too small.
+   * Default is 350px.
+   */
+  @Input()
+  minHeight = 350;
 
   /** DOM reference to the resizable content area */
   @ViewChild('window')
@@ -204,6 +220,10 @@ export class Window implements OnInit, AfterViewInit {
   /**
    * Handles window resize via mouse drag on corner or edge handles.
    * Dynamically adjusts both size and position depending on the direction.
+   * Enforces minimum width and height constraints.
+   *
+   * @param event - The initial mousedown event on a resize handle
+   * @param direction - The resize direction
    */
   onResizeStart(event: MouseEvent, direction: ResizeDirection) {
     const startX = event.clientX;
@@ -250,10 +270,19 @@ export class Window implements OnInit, AfterViewInit {
         return { width, height, x, y };
       })
     ).subscribe(({ width, height, x, y }) => {
+      // Enforce minimum width and height limits
+      const clampedWidth = Math.max(this.minWidth, width);
+      const clampedHeight = Math.max(this.minHeight, height);
+
+      // If shrinking from west or north, adjust the top-left position
+      const adjustedX = width < this.minWidth && direction.includes('w') ? elRect.right - this.minWidth : x;
+      const adjustedY = height < this.minHeight && direction.includes('n') ? elRect.bottom - this.minHeight : y;
+
       this.windowManager.update(this.windowInstance()!.instanceId, {
-        position: { x, y },
+        position: { x: adjustedX, y: adjustedY },
       });
-      this.applySize({width, height});
+
+      this.applySize({ width: clampedWidth, height: clampedHeight });
     });
   }
 
