@@ -260,29 +260,29 @@ export class Window implements OnInit, AfterViewInit {
         }
         if (direction.includes('w')) {
           width -= dx;
-          x += dx;
+          if (width > this.minWidth) {
+            x += dx;
+          } else {
+            width = this.minWidth;
+          }
         }
         if (direction.includes('n')) {
           height -= dy;
-          y += dy;
+          if (height > this.minHeight) {
+            y += dy;
+          } else {
+            height = this.minHeight;
+          }
         }
 
         return { width, height, x, y };
       })
     ).subscribe(({ width, height, x, y }) => {
-      // Enforce minimum width and height limits
-      const clampedWidth = Math.max(this.minWidth, width);
-      const clampedHeight = Math.max(this.minHeight, height);
-
-      // If shrinking from west or north, adjust the top-left position
-      const adjustedX = width < this.minWidth && direction.includes('w') ? elRect.right - this.minWidth : x;
-      const adjustedY = height < this.minHeight && direction.includes('n') ? elRect.bottom - this.minHeight : y;
-
       this.windowManager.update(this.windowInstance()!.instanceId, {
-        position: { x: adjustedX, y: adjustedY },
+        position: { x, y },
       });
 
-      this.applySize({ width: clampedWidth, height: clampedHeight });
+      this.applySize({ width, height });
     });
   }
 
