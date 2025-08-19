@@ -65,7 +65,12 @@ export class WindowManager {
   private readonly windowOrder = signal<number[]>([]);
 
   /** Instance id of the focus window */
-  readonly focusedId = computed(() =>　this.windowOrder()[0]);
+  readonly focusedId = computed(() => {
+    const map = this.windowMap();
+    const order = this.windowOrder();
+
+    return order.find(id => !(map.get(id)?.state === WindowInstanceState.MINIMIZED));
+  });
 
   /** Opens a new app window */
   open(appMeta: DesktopAppMeta) {
