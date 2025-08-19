@@ -106,21 +106,6 @@ export class WindowManager {
     });
   }
 
-  /** Update the specified window */
-  update(instanceId: number, patch: Partial<WindowInstance>): void {
-    this.windowMap.update(pre => {
-      const curr = pre.get(instanceId);
-      if (!curr) {
-        return pre;
-      }
-
-      const next = new Map(pre);
-      next.set(instanceId, { ...curr, ...patch });
-
-      return next;
-    });
-  }
-
   /** Brings a window to the top of stacking order */
   focus(instanceId: number): void {
     this.windowOrder.update(prev => {
@@ -132,15 +117,12 @@ export class WindowManager {
     });
   }
 
-  minimize(instanceId: number, isMaximized: boolean): void {
-    const stateBeforeMinimize = isMaximized
-      ? WindowInstanceState.MAXIMIZED
-      : WindowInstanceState.NORMAL;
-
-    this.update(instanceId, {
+  minimize(instanceId: number): void {
+    this.update(instanceId, curr => ({
+      ...curr,
       state: WindowInstanceState.MINIMIZED,
-      stateBeforeMinimize
-    });
+      stateBeforeMinimize: curr.state
+    }));
   }
 
   maximize(instanceId: number): void {
@@ -157,12 +139,7 @@ export class WindowManager {
       this.focus(instanceId);
     }
 
-    this.windowMap.update(pre => {
-      const curr = pre.get(instanceId);
-      if (!curr) {
-        return pre;
-      }
-
+    this.update(instanceId, curr => {
       let patch: Partial<WindowInstance> = {};
       // if it's not focused and is minimized, restore its state
       if (!isFocused) {
@@ -177,8 +154,52 @@ export class WindowManager {
         }
       }
 
+      return { ...curr, ...patch };
+    });
+  }
+
+  /**
+   * Updates a window instance.
+   *
+   * Two forms are supported:
+   *
+   * 1. **Patch object (Partial update)**  
+   *    Use this when you simply want to override a few fields.
+   *    ```ts
+   *    manager.update(id, { state: WindowInstanceState.MAXIMIZED });
+   *    manager.update(id, { title: "New Title" });
+   *    ```
+   *
+   * 2. **Patcher function (Functional update)**  
+   *    Use this when the new state depends on the current state.
+   *    This ensures safe state transitions without stale reads.
+   *    ```ts
+   *    manager.update(id, curr => ({
+   *      ...curr,
+   *      state: WindowInstanceState.MINIMIZED,
+   *      stateBeforeMinimize: curr.state
+   *    }));
+   *    ```
+   *
+   * Notes:
+   * - This method guarantees only the specified window entry is replaced,
+   *   without mutating others.
+   * - Internally always wraps in `signal.update` to maintain consistency.
+   */
+  update(instanceId: number, patch: Partial<WindowInstance>): void;
+  update(instanceId: number, patcher: (curr: WindowInstance) => WindowInstance): void;
+  update(instanceId: number, patchOrFn: Partial<WindowInstance> | ((curr: WindowInstance) => WindowInstance)): void {
+    this.windowMap.update(pre => {
+      const curr = pre.get(instanceId);
+      if (!curr) return pre;
+
       const next = new Map(pre);
-      next.set(instanceId, { ...curr, ...patch });
+
+      if (typeof patchOrFn === 'function') {
+        next.set(instanceId, patchOrFn(curr));
+      } else {
+        next.set(instanceId, { ...curr, ...patchOrFn });
+      }
 
       return next;
     });

@@ -198,7 +198,7 @@ export class Window implements OnInit, AfterViewInit {
    * Minimizes the window, hiding it from view (but not closing).
    */
   minimize(): void {
-    this.windowManager.minimize(this.windowInstance()!.instanceId, this.isMaximized());
+    this.windowManager.minimize(this.windowInstance()!.instanceId);
   }
 
   /**
