@@ -23,7 +23,6 @@
  */
 
 import { computed, Injectable, signal } from '@angular/core';
-import { DesktopAppId } from '@webows/core/apps/desktop-app.enum';
 import { DesktopAppMeta, WindowInstance, WindowInstanceState } from '@webows/core/apps/desktop-app.model';
 
 /**
@@ -123,7 +122,7 @@ export class WindowManager {
   }
 
   /** Brings a window to the top of stacking order */
-  moveToTop(instanceId: number): void {
+  focus(instanceId: number): void {
     this.windowOrder.update(prev => {
       if (prev[0] === instanceId) {
         return prev;
@@ -150,12 +149,12 @@ export class WindowManager {
 
   restore(instanceId: number): void {
     this.update(instanceId, {state: WindowInstanceState.NORMAL});
-    this.moveToTop(instanceId);
+    this.focus(instanceId);
   }
 
   toggleTaskbarItem(instanceId: number, isFocused: boolean): void {
     if (!isFocused) {
-      this.moveToTop(instanceId);
+      this.focus(instanceId);
     }
 
     this.windowMap.update(pre => {
@@ -164,12 +163,22 @@ export class WindowManager {
         return pre;
       }
 
-      const newState = curr.state === WindowInstanceState.MINIMIZED
-        ? curr.stateBeforeMinimize ?? WindowInstanceState.NORMAL
-        : WindowInstanceState.MINIMIZED;
+      let patch: Partial<WindowInstance> = {};
+      // if it's not focused and is minimized, restore its state
+      if (!isFocused) {
+        patch.state = curr.stateBeforeMinimize ?? WindowInstanceState.NORMAL;
+      } else {
+        // toggle between minimized and restored
+        if (curr.state === WindowInstanceState.MINIMIZED) {
+          patch.state = curr.stateBeforeMinimize ?? WindowInstanceState.NORMAL;
+        } else {
+          patch.state = WindowInstanceState.MINIMIZED;
+          patch.stateBeforeMinimize = curr.state;
+        }
+      }
 
       const next = new Map(pre);
-      next.set(instanceId, { ...curr, state: newState });
+      next.set(instanceId, { ...curr, ...patch });
 
       return next;
     });

@@ -191,7 +191,7 @@ export class Window implements OnInit, AfterViewInit {
    */
   moveToTop(event: Event): void {
     event.stopPropagation();
-    this.windowManager.moveToTop(this.windowInstance()!.instanceId);
+    this.windowManager.focus(this.windowInstance()!.instanceId);
   }
 
   /**
