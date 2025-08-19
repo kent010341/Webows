@@ -148,7 +148,11 @@ export class WindowManager {
     this.moveToTop(instanceId);
   }
 
-  toggleTaskbarItem(instanceId: number): void {
+  toggleTaskbarItem(instanceId: number, isFocused: boolean): void {
+    if (!isFocused) {
+      this.moveToTop(instanceId);
+    }
+
     this.windowMap.update(pre => {
       const curr = pre.get(instanceId);
       if (!curr) {

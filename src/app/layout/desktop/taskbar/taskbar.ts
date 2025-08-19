@@ -76,7 +76,7 @@ export class Taskbar {
   });
 
   toggleApp(app: TaskbarItem): void {
-    this.windowManager.toggleTaskbarItem(app.instance.instanceId);
+    this.windowManager.toggleTaskbarItem(app.instance.instanceId, app.isFocused);
   }
 
   openGithub(): void {
