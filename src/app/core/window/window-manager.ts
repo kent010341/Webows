@@ -23,7 +23,6 @@
  */
 
 import { computed, Injectable, signal } from '@angular/core';
-import { DesktopAppId } from '@webows/core/apps/desktop-app.enum';
 import { DesktopAppMeta, WindowInstance, WindowInstanceState } from '@webows/core/apps/desktop-app.model';
 
 /**
@@ -65,7 +64,12 @@ export class WindowManager {
   private readonly windowOrder = signal<number[]>([]);
 
   /** Instance id of the focus window */
-  readonly focusedId = computed(() =>　this.windowOrder()[0]);
+  readonly focusedId = computed(() => {
+    const map = this.windowMap();
+    const order = this.windowOrder();
+
+    return order.find(id => !(map.get(id)?.state === WindowInstanceState.MINIMIZED));
+  });
 
   /** Opens a new app window */
   open(appMeta: DesktopAppMeta) {
@@ -102,23 +106,8 @@ export class WindowManager {
     });
   }
 
-  /** Update the specified window */
-  update(instanceId: number, patch: Partial<WindowInstance>): void {
-    this.windowMap.update(pre => {
-      const curr = pre.get(instanceId);
-      if (!curr) {
-        return pre;
-      }
-
-      const next = new Map(pre);
-      next.set(instanceId, { ...curr, ...patch });
-
-      return next;
-    });
-  }
-
   /** Brings a window to the top of stacking order */
-  moveToTop(instanceId: number): void {
+  focus(instanceId: number): void {
     this.windowOrder.update(prev => {
       if (prev[0] === instanceId) {
         return prev;
@@ -129,7 +118,11 @@ export class WindowManager {
   }
 
   minimize(instanceId: number): void {
-    this.update(instanceId, {state: WindowInstanceState.MINIMIZED});
+    this.update(instanceId, curr => ({
+      ...curr,
+      state: WindowInstanceState.MINIMIZED,
+      stateBeforeMinimize: curr.state
+    }));
   }
 
   maximize(instanceId: number): void {
@@ -138,7 +131,78 @@ export class WindowManager {
 
   restore(instanceId: number): void {
     this.update(instanceId, {state: WindowInstanceState.NORMAL});
-    this.moveToTop(instanceId);
+    this.focus(instanceId);
+  }
+
+  toggleTaskbarItem(instanceId: number, isFocused: boolean): void {
+    if (!isFocused) {
+      this.focus(instanceId);
+    }
+
+    this.update(instanceId, curr => {
+      let patch: Partial<WindowInstance> = {};
+      // if it's not focused and is minimized, restore its state
+      if (!isFocused) {
+        patch.state = curr.stateBeforeMinimize ?? WindowInstanceState.NORMAL;
+      } else {
+        // toggle between minimized and restored
+        if (curr.state === WindowInstanceState.MINIMIZED) {
+          patch.state = curr.stateBeforeMinimize ?? WindowInstanceState.NORMAL;
+        } else {
+          patch.state = WindowInstanceState.MINIMIZED;
+          patch.stateBeforeMinimize = curr.state;
+        }
+      }
+
+      return { ...curr, ...patch };
+    });
+  }
+
+  /**
+   * Updates a window instance.
+   *
+   * Two forms are supported:
+   *
+   * 1. **Patch object (Partial update)**  
+   *    Use this when you simply want to override a few fields.
+   *    ```ts
+   *    manager.update(id, { state: WindowInstanceState.MAXIMIZED });
+   *    manager.update(id, { title: "New Title" });
+   *    ```
+   *
+   * 2. **Patcher function (Functional update)**  
+   *    Use this when the new state depends on the current state.
+   *    This ensures safe state transitions without stale reads.
+   *    ```ts
+   *    manager.update(id, curr => ({
+   *      ...curr,
+   *      state: WindowInstanceState.MINIMIZED,
+   *      stateBeforeMinimize: curr.state
+   *    }));
+   *    ```
+   *
+   * Notes:
+   * - This method guarantees only the specified window entry is replaced,
+   *   without mutating others.
+   * - Internally always wraps in `signal.update` to maintain consistency.
+   */
+  update(instanceId: number, patch: Partial<WindowInstance>): void;
+  update(instanceId: number, patcher: (curr: WindowInstance) => WindowInstance): void;
+  update(instanceId: number, patchOrFn: Partial<WindowInstance> | ((curr: WindowInstance) => WindowInstance)): void {
+    this.windowMap.update(pre => {
+      const curr = pre.get(instanceId);
+      if (!curr) return pre;
+
+      const next = new Map(pre);
+
+      if (typeof patchOrFn === 'function') {
+        next.set(instanceId, patchOrFn(curr));
+      } else {
+        next.set(instanceId, { ...curr, ...patchOrFn });
+      }
+
+      return next;
+    });
   }
 
 }
