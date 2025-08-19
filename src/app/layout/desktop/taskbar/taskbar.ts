@@ -23,7 +23,7 @@
  */
 
 import { Component, computed, EventEmitter, inject, Output, Signal } from '@angular/core';
-import { DatePipe } from '@angular/common';
+import { DatePipe, NgClass } from '@angular/common';
 import { DESKTOP_APPS } from '@webows/core/apps/desktop-app.data';
 import { interval, map, startWith } from 'rxjs';
 import { GithubIcon, LucideAngularModule, LucideIconData, MenuIcon } from 'lucide-angular';
@@ -40,6 +40,7 @@ import { WindowInstance } from '@webows/core/apps/desktop-app.model';
   imports: [
     DatePipe,
     LucideAngularModule,
+    NgClass,
     TooltipModule,
   ],
   templateUrl: './taskbar.html',
@@ -66,9 +67,11 @@ export class Taskbar {
    * Distinct apps that currently have any instance open
    */
   readonly openApps: Signal<TaskbarItem[]> = computed(() => {
+    const focusedId = this.windowManager.focusedId();
     return this.windowManager.windowsSorted().map(w => ({
       instance: w,
-      icon: DESKTOP_APPS[w.appId].icon
+      icon: DESKTOP_APPS[w.appId].icon,
+      isFocused: focusedId === w.instanceId
     }));
   });
 
@@ -87,5 +90,7 @@ interface TaskbarItem {
   instance: WindowInstance;
 
   icon: LucideIconData;
+
+  isFocused: boolean;
 
 }

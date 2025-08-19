@@ -13,8 +13,9 @@
   <div class="flex items-start flex-1 gap-1 ml-4 h-full">
     @for (app of openApps(); track app.instance.instanceId) {
       <div
-        class="h-full flex items-center gap-2 px-3 cursor-pointer rounded hover:bg-[#404040] active:bg-[#505050] transition-colors select-none"
+        class="h-full flex items-center gap-2 px-3 cursor-pointer hover:bg-[#404040] active:bg-[#505050] transition-colors select-none"
         [pTooltip]="app.instance.title"
+        [ngClass]="{'bg-[#666666]': app.isFocused}"
         tooltipPosition="top"
         (click)="toggleApp(app)"
       >
