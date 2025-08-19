@@ -53,6 +53,8 @@ export interface WindowInstance {
 
   state: WindowInstanceState;
 
+  stateBeforeMinimize?: WindowInstanceState;
+
 }
 
 /**

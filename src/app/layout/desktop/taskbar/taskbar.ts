@@ -72,8 +72,8 @@ export class Taskbar {
     }));
   });
 
-  restoreApp(app: TaskbarItem): void {
-    this.windowManager.restore(app.instance.instanceId);
+  toggleApp(app: TaskbarItem): void {
+    this.windowManager.toggleTaskbarItem(app.instance.instanceId);
   }
 
   openGithub(): void {

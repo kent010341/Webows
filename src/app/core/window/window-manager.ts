@@ -128,8 +128,15 @@ export class WindowManager {
     });
   }
 
-  minimize(instanceId: number): void {
-    this.update(instanceId, {state: WindowInstanceState.MINIMIZED});
+  minimize(instanceId: number, isMaximized: boolean): void {
+    const stateBeforeMinimize = isMaximized
+      ? WindowInstanceState.MAXIMIZED
+      : WindowInstanceState.NORMAL;
+
+    this.update(instanceId, {
+      state: WindowInstanceState.MINIMIZED,
+      stateBeforeMinimize
+    });
   }
 
   maximize(instanceId: number): void {
@@ -139,6 +146,24 @@ export class WindowManager {
   restore(instanceId: number): void {
     this.update(instanceId, {state: WindowInstanceState.NORMAL});
     this.moveToTop(instanceId);
+  }
+
+  toggleTaskbarItem(instanceId: number): void {
+    this.windowMap.update(pre => {
+      const curr = pre.get(instanceId);
+      if (!curr) {
+        return pre;
+      }
+
+      const newState = curr.state === WindowInstanceState.MINIMIZED
+        ? curr.stateBeforeMinimize ?? WindowInstanceState.NORMAL
+        : WindowInstanceState.MINIMIZED;
+
+      const next = new Map(pre);
+      next.set(instanceId, { ...curr, state: newState });
+
+      return next;
+    });
   }
 
 }

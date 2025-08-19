@@ -16,7 +16,7 @@
         class="h-full flex items-center gap-2 px-3 cursor-pointer rounded hover:bg-[#404040] active:bg-[#505050] transition-colors select-none"
         [pTooltip]="app.instance.title"
         tooltipPosition="top"
-        (click)="restoreApp(app)"
+        (click)="toggleApp(app)"
       >
         <lucide-icon [img]="app.icon" class="w-4 h-4 text-white" />
       </div>
