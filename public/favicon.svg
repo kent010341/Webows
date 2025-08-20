@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Background -->
+  <rect x="2" y="2" width="60" height="60" rx="6" ry="6" 
+        fill="#1e1e1e" />
+
+  <!-- title bar -->
+  <clipPath id="titlebar-clip">
+    <path d="
+      M 2,22
+      L 2,8
+      Q 2,2 8,2
+      L 56,2
+      Q 62,2 62,8
+      L 62,22
+      Z
+    " />
+  </clipPath>
+
+  <rect x="2" y="2" width="60" height="17" 
+        fill="#2D2D2D" 
+        clip-path="url(#titlebar-clip)" />
+
+  <!-- underline of title bar -->
+  <line x1="2" y1="19" x2="62" y2="19" stroke="#444" stroke-width="1"/>
+
+  <!-- outer stroke -->
+  <rect x="2" y="2" width="60" height="60" rx="6" ry="6" 
+        fill="#00000000" stroke="#3c3c3c" stroke-width="2"/>
+
+  <!-- Control buttons -->
+  <rect x="19" y="5" width="12" height="12" rx="2" fill="#444"/>
+  <rect x="33" y="5" width="12" height="12" rx="2" fill="#444"/>
+  <rect x="47" y="5" width="12" height="12" rx="2" fill="#444"/>
+</svg>
